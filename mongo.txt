@@ -1,0 +1,7 @@
+db.createUser({
+user:"Davi",
+pwd:"1234",
+roles:["readWrite","dbAdmin"]
+})
+
+db.createCollection('customers')
