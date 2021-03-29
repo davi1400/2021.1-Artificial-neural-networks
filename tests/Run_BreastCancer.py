@@ -12,7 +12,7 @@ from MLP import MultiLayerPerceptron
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 
-data = pd.read_csv('breast-cancer-wisconsin.data.txt',names=[0,1,2,3,4,5,6,7,8,9,10])
+data = pd.read_csv('breast-cancer-wisconsin.data.txt', names=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
 data[6] = data[6].replace('?','NaN')
 imputer = Imputer(missing_values='NaN', strategy='median', axis=0)
