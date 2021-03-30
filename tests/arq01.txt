@@ -1,3 +1,0 @@
-Bóson Treinamentos
-Criando um arquivo de texto com Python
-Arquivo criado por Fábio dos Reis
