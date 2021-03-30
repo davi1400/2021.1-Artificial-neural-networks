@@ -44,4 +44,12 @@ class knn:
 
 
 if __name__ == '__main__':
-    pass
+
+    from mlfwk.readWrite import load_base
+    from mlfwk.utils import split_random
+
+    iris_base = load_base(path='iris.data', type='csv')
+    print(type(iris_base))
+    train, test = split_random(iris_base)
+    print(train.shape)
+    print(test.shape)
