@@ -1,7 +1,30 @@
-/mlfwk/datasets/
-/venv/
+# Distribution / packagingX
+.Python
+.idea
+template.yml
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+venv
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+.dynamodb
+
+scripts/**/*.json
+.vscode
