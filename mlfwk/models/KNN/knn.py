@@ -1,26 +1,30 @@
+from numpy import array
+from pandas.core.frame import DataFrame
 from mlfwk.algorithms import calculate_euclidian_distance
 
 
 class knn:
-    def __init__(self, x, y, k=3):
-        self.x = x
-        self.y = y
+    def __init__(self, x_train, y_train, class_column_name=None, k=3):
+
+
+        self.x_train = x_train
+        self.y_train = y_train
         self.k = k
 
     def predict(self, x_test):
-        self.running()
+        self.running.__doc__
 
         y_output = []
         for exampe in x_test:
             distance = []
-            for indice in range(len(self.x)):
-                euclidian_dist = calculate_euclidian_distance(exampe, self.x[indice])
-                distance.append((euclidian_dist, self.y[indice]))
+            for indice in range(len(self.x_train)):
+                euclidian_dist = calculate_euclidian_distance(exampe, self.x_train[indice])
+                distance.append((euclidian_dist, self.y_train[indice]))
 
             k_nearest_distances_and_labels = sorted(distance)[:self.k]
             counter = {}
             for i in range(len(k_nearest_distances_and_labels)):
-                label = str(int(k_nearest_distances_and_labels[i][1][0]))
+                label = (int(k_nearest_distances_and_labels[i][1]))
 
                 if label in counter:
                     counter[label] += 1
@@ -35,13 +39,8 @@ class knn:
 
         return y_output
 
-
-        pass
-
     def running(self):
         """Begin to run"""
         return
 
 
-if __name__ == '__main__':
-    pass
