@@ -1,5 +1,5 @@
-<h1 align="center">Datasets</h1>
+<h1 align="center">Datasets used</h1>
 
 
- - <a href="https://archive.ics.uci.edu/ml/datasets/iris"> Iris </a>
+ - Iris Fonte: <a href="https://archive.ics.uci.edu/ml/datasets/iris"> uci-dataset-iris </a>
  -  
