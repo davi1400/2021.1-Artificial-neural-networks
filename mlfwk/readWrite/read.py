@@ -30,6 +30,6 @@ def load_mock(type=None):
         data2 = array(data2, ndmin=2).T
         X = concatenate([data1, data2], axis=1)
         Y = ones((X.shape[0], 1))
-        Y[10:, ] = -1 * Y[10:, ]
+        Y[10:, ] = 0 * Y[10:, ]
 
-    return X, Y
+    return concatenate([X, Y], axis=1)

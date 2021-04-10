@@ -1,1 +1,1 @@
-from .algorithms import calculate_euclidian_distance
+from .algorithms import *
