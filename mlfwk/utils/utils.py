@@ -1,4 +1,5 @@
 from pathlib import Path
+from numpy import ndarray
 from numpy.random import permutation
 from pandas.core.frame import DataFrame
 from sklearn.preprocessing import StandardScaler
@@ -36,7 +37,9 @@ def split_random(data_base, train_percentage=.8):
     if type(data_base) == DataFrame:
         train_base = data_base.iloc[permutation_indices[:round(data_base.shape[0] * train_percentage)]]
         test_base = data_base.iloc[permutation_indices[round(data_base.shape[0] * train_percentage):]]
-    else:
+    elif type(data_base) == ndarray:
+        train_base = data_base[permutation_indices[:round(data_base.shape[0] * train_percentage)]]
+        test_base = data_base[permutation_indices[round(data_base.shape[0] * train_percentage):]]
         pass
 
     return train_base, test_base

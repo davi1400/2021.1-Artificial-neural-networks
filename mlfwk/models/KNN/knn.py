@@ -15,10 +15,10 @@ class knn:
         self.running.__doc__
 
         y_output = []
-        for exampe in x_test:
+        for example in x_test:
             distance = []
             for indice in range(len(self.x_train)):
-                euclidian_dist = calculate_euclidian_distance(exampe, self.x_train[indice])
+                euclidian_dist = calculate_euclidian_distance(example, self.x_train[indice])
                 distance.append((euclidian_dist, self.y_train[indice]))
 
             k_nearest_distances_and_labels = sorted(distance)[:self.k]
