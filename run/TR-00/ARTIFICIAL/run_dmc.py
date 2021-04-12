@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+print(str(Path(__file__).parent.parent.parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+
+
 from mlfwk.readWrite import load_mock
 import matplotlib.pyplot as plt
 from numpy import where, mean, std, c_, array

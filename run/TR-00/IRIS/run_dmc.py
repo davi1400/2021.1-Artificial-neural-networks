@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+print(str(Path(__file__).parent.parent.parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+
+
 from numpy import where, array, mean, std
 from pandas.core.frame import DataFrame
 from mlfwk.readWrite import load_base
