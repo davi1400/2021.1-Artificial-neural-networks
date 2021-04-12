@@ -4,7 +4,7 @@ from numpy import where, mean, std, c_, array
 from pandas.core.frame import DataFrame
 from mlfwk.utils import split_random, get_project_root
 from collections import Counter
-from mlfwk.models import knn
+from mlfwk.models import dmc
 from mlfwk.metrics import metric
 from mlfwk.visualization import generate_space, coloring
 from matplotlib.colors import ListedColormap
@@ -52,10 +52,10 @@ if __name__ == '__main__':
         x_test = test[:, :2]
         y_test = test[:, 2]
 
-        classifier_knn = knn(x_train, y_train, k=3)
-        y_out_knn = classifier_knn.predict(x_test)
+        classifier_dmc = dmc(x_train, y_train)
+        y_out_dmc = classifier_dmc.predict(x_test, [0, 1])
 
-        metrics_calculator = metric(list(y_test), y_out_knn, types=['ACCURACY', 'AUC', 'precision',
+        metrics_calculator = metric(list(y_test), y_out_dmc, types=['ACCURACY', 'AUC', 'precision',
                                                                     'recall', 'f1_score', 'MCC'])
         metric_results = metrics_calculator.calculate()
 
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         final_result[type].append(mean(results[type]))
         final_result['std ' + type].append(std(results[type]))
 
-    DataFrame(final_result).to_csv(get_project_root() + '/run/TR-00/ARTIFICIAL/results/' + 'result_knn.csv')
+    DataFrame(final_result).to_csv(get_project_root() + '/run/TR-00/ARTIFICIAL/results/' + 'result_dmc.csv')
 
     xx, yy = generate_space(x_test)
     space = c_[xx.ravel(), yy.ravel()]
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     plot_dict = {
         'xx': xx,
         'yy': yy,
-        'Z': array(classifier_knn.predict(space)),
+        'Z': array(classifier_dmc.predict(space, [0, 1])),
         'classes': {}
     }
 
@@ -101,6 +101,6 @@ if __name__ == '__main__':
 
     # #FFAAAA red
     # #AAAAFF blue
-    coloring(plot_dict, ListedColormap(['#FFAAAA', '#AAAAFF']), xlabel='x1', ylabel='x2', title='mapa de cores com knn',
-             path='color_map_and_knn.jpg')
+    coloring(plot_dict, ListedColormap(['#FFAAAA', '#AAAAFF']), xlabel='x1', ylabel='x2', title='mapa de cores com dmc',
+             path='color_map_and_dmc.jpg')
     print('dataset shape %s' % Counter(base[:, 2]))

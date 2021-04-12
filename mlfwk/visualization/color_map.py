@@ -1,6 +1,7 @@
 from mlfwk.readWrite import load_mock
 from numpy import meshgrid, arange
 import matplotlib.pyplot as plt
+import seaborn as sns  # sits ontop of matplotlib
 
 
 def generate_space(X):
@@ -11,8 +12,13 @@ def generate_space(X):
     return xx, yy
 
 
-def coloring(plot_dict, color_map):
+def coloring(plot_dict, color_map, title=None, xlabel=None, ylabel=None, save=False, path=''):
     """
+    :param save:
+    :param ylabel:
+    :param xlabel:
+    :param title:
+    :param path:
     :param color_map:
     :param plot_dict:  {
         'xx': meshgrid,
@@ -41,5 +47,14 @@ def coloring(plot_dict, color_map):
         plt.plot(plot_dict['classes'][c]['X'][:, 0], plot_dict['classes'][c]['X'][:, 1],
                  plot_dict['classes'][c]['point'], marker=plot_dict['classes'][c]['marker'], markeredgecolor='w')
 
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+
+    if save:
+        plt.savefig(path)
     plt.show()
 
+
+def subplots():
+    pass

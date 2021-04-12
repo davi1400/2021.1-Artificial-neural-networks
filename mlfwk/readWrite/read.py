@@ -17,8 +17,8 @@ def load_base(path='', column_names=None, type=None):
 
 def load_mock(type=None):
     if type == 'LOGICAL_AND':
-        t = linspace(0, 2 * pi, 10)
-        r = random.rand(10) / 5.0
+        t = linspace(0, 2 * pi, 20)
+        r = random.rand(20) / 5.0
 
         x1, x2 = 1 + r * cos(t), 1 + r * sin(t)
         x3, x4 = r * cos(t), r * sin(t)
@@ -30,6 +30,6 @@ def load_mock(type=None):
         data2 = array(data2, ndmin=2).T
         X = concatenate([data1, data2], axis=1)
         Y = ones((X.shape[0], 1))
-        Y[10:, ] = 0 * Y[10:, ]
+        Y[20:, ] = 0 * Y[20:, ]
 
     return concatenate([X, Y], axis=1)
