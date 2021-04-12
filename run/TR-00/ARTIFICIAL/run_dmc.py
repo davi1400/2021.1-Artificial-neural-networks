@@ -41,6 +41,7 @@ if __name__ == '__main__':
         'recall': []
     }
 
+    # sem normalização
     base = load_mock(type='LOGICAL_AND')
 
     pos = base[:, :2][where(base[:, 2] == 1)[0]]

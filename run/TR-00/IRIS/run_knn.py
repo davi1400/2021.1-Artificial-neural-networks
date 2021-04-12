@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
         # normalizar a base
         iris_base[['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm']] = normalization(
-            iris_base[['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm']], type='z-score')
+            iris_base[['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm']], type='min-max')
 
         setosa_ind = where(iris_base['Species'] == 'Iris-setosa')[0]
         versicolor_ind = where(iris_base['Species'] == 'Iris-versicolor')[0]
@@ -112,3 +112,4 @@ if __name__ == '__main__':
             final_result['std ' + type].append(std(results[type]))
 
     DataFrame(final_result).to_csv(get_project_root() + '/run/TR-00/IRIS/results/' + 'result_knn.csv')
+    print(DataFrame(final_result))

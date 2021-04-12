@@ -50,7 +50,7 @@ def normalization(x_base, type=None):
         scaler = StandardScaler()
         scaler.fit(x_base)
         x_base = scaler.transform(x_base)
-    else:
-        pass
+    elif type == 'min-max':
+        x_base = (x_base - x_base.min(axis=0))/(x_base.max(axis=0)-x_base.min(axis=0))
 
     return x_base
