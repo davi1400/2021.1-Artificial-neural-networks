@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import zeros, where, ndarray, array
+from numpy import zeros, where, ndarray, array, sqrt
 from sklearn.metrics import *
 from mlfwk.utils import calculate_confusion_matrix
 
@@ -30,7 +30,13 @@ class metric:
 
     def precision(self, y_true, y_pred):
         cf = self.confusion_matrix(y_true, y_pred)
-        return cf[0][0]/(cf[0][0]+cf[1][0])
+        try:
+            if np.isnan(cf[0][0]/(cf[0][0]+cf[1][0])):
+                return 0
+            else:
+                return cf[0][0] / (cf[0][0] + cf[1][0])
+        except ValueError or Exception:
+            print("Error")
 
     def recall(self, y_true, y_pred):
         cf = self.confusion_matrix(y_true, y_pred)
@@ -40,7 +46,19 @@ class metric:
         precision = self.precision(y_true, y_pred)
         recall = self.recall(y_true, y_pred)
 
-        return (2*precision*recall)/(precision+recall)
+        try:
+            if np.isnan((2*precision*recall)/(precision+recall)):
+                return 0
+            else:
+                return (2*precision*recall)/(precision+recall)
+        except Exception:
+            print("error")
+
+    def mse(self, y_true, y_pred):
+        return mean_squared_error(y_true, y_pred)
+
+    def rmse(self, y_true, y_pred):
+        return sqrt(self.mse(y_true, y_pred))
 
     def one_by_one(self, type, y_true, y_pred):
 
@@ -51,7 +69,9 @@ class metric:
             'precision': self.precision,
             'recall': self.recall,
             'f1_score': self.f1,
-            'MCC': matthews_corrcoef
+            'MCC': matthews_corrcoef,
+            'MSE': self.mse,
+            'RMSE': self.rmse
         }
 
         return func_possibles[type](y_true, y_pred)

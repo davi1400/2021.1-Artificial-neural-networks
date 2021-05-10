@@ -1,5 +1,5 @@
 from pathlib import Path
-from numpy import ndarray
+from numpy import ndarray, zeros
 from numpy.random import permutation
 from pandas.core.frame import DataFrame
 from sklearn.preprocessing import StandardScaler
@@ -51,6 +51,14 @@ def normalization(x_base, type=None):
         scaler.fit(x_base)
         x_base = scaler.transform(x_base)
     elif type == 'min-max':
-        x_base = (x_base - x_base.min(axis=0))/(x_base.max(axis=0)-x_base.min(axis=0))
+        x_base = (x_base - x_base.min(axis=0)) / (x_base.max(axis=0) - x_base.min(axis=0))
 
     return x_base
+
+
+def one_out_of_c(array, n):
+    output = zeros((array.shape[0], n))
+    for i in range(array.shape[0]):
+        output[i][int(array[i])] = 1
+
+    return output
