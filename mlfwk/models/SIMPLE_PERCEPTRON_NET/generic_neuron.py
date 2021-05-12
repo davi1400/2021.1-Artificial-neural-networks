@@ -1,5 +1,5 @@
 from numpy import zeros, array
-from numpy.random import randn
+from numpy.random import randn, rand
 from scipy.special import expit
 from mlfwk.algorithms import heaveside
 
@@ -11,22 +11,19 @@ class generic_neuron:
             'degree': heaveside
         }
         self.activation = self.all_possible_activations[activation_function]
-        self.weights = array(randn(M), ndmin=2).T
+        self.weights = array(rand(M), ndmin=2).T
 
 
     def add_bias(self, x):
         return np.concatenate([np.ones((x.shape[0], 1)), x], axis=1)
 
     def u(self, x):
-        print("foward")
         return x.dot(self.weights)
 
     def foward(self, x):
-        print("foward")
         return self.activation(x.dot(self.weights))
 
     def backward(self, adjust):
-        print("back")
         self.weights += adjust
 
     def predict(self, x):

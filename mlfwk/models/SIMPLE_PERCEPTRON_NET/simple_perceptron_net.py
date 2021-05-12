@@ -6,13 +6,13 @@ from sklearn.model_selection import KFold
 from numpy.random import rand, permutation
 from numpy import where, append, ones, array, zeros, mean, argmax, linspace, concatenate
 from mlfwk.metrics import metric
-from mlfwk.algorithms import learning_rule_perceptron, heaveside
+from mlfwk.algorithms import learning_rule_perceptron
 
 
 from mlfwk.readWrite import load_mock
 from multiprocessing.pool import ThreadPool
 from mlfwk.models import generic_neuron
-from mlfwk.utils import split_random, get_project_root, one_out_of_c
+from mlfwk.utils import split_random, get_project_root, one_out_of_c, normalization, out_of_c_to_label
 
 
 
@@ -62,32 +62,52 @@ class simple_perceptron_network:
         """
         if test:
             x = self.add_bias(x)
-            return self.activation_function(self.foward(x))
+            outputs = zeros((x.shape[0], self.number_of_neurons))
+            indice = 0
+            for example in x:
+                output = self.foward(example)
+                y = zeros((self.number_of_neurons, 1))
+                i = 0
+                for neuron_key in output.keys():
+                    y[i] = output[neuron_key]
+                    i += 1
+
+                outputs[indice] = y.T
+                indice += 1
+
+            return outputs
         else:
             return self.activation_function(self.foward(x))
 
     def foward(self, x):
-        pool = ThreadPool(processes=self.number_of_neurons)
-        threads = []
-        for neuron in self.network.values():
-            async_result = pool.map_async(neuron.u, (array(x, ndmin=2)))
-            threads.append(async_result)
+        indice = 0
+        outputs = {}
+        # outputs = zeros((x.shape[0], 1))
+        for neuron_key in self.network.keys():
+            outputs.update({
+                neuron_key: self.network[neuron_key].foward(array(x, ndmin=2))
+            })
 
-        outputs = []
-        for th in threads:
-            outputs.append(th.get())
-
-
-        return self.one_out_c(outputs)
+        return outputs
 
     def backward(self, error, x):
-        pool = ThreadPool(processes=self.number_of_neurons)
-        threads = []
-        adjust = learning_rule_perceptron(1, error.T, array(x, ndmin=2), self.learning_rate)
 
-        for neuron in self.network.values():
-            async_result = pool.map_async(neuron.backward, (adjust,))
-            threads.append(async_result)
+        for neuron_key in self.network.keys():
+            adjust = learning_rule_perceptron(1, error[neuron_key], array(x, ndmin=2), self.learning_rate)
+            self.network[neuron_key].backward(adjust)
+
+
+    def calculate_error(self, y, y_output):
+
+        indice = 0
+        error_per_neuron = {}
+        for neuron_key in y_output.keys():
+            error_per_neuron.update({
+                neuron_key: y[indice] - y_output[neuron_key]
+            })
+            indice += 1
+
+        return error_per_neuron
 
     def online_train(self, x, y):
         k = 0
@@ -97,13 +117,12 @@ class simple_perceptron_network:
         self.errors_per_epoch = []
         for epoch in range(self.epochs):
             y_output = self.foward(x[r[k]])
-            error = array(y[r[k]], ndmin=2).T - y_output
+            neurons_error = self.calculate_error(array(y[r[k]], ndmin=2).T, y_output)
+            # error = array(y[r[k]], ndmin=2).T - y_output
 
-            # total_error = (sum(array(y, ndmin=2) != self.predict(x, test=False)) / len(y))[0]
 
-            # self.errors_per_epoch.append(total_error)
 
-            self.backward(error, x[r[k]])
+            self.backward(neurons_error, x[r[k]])
             k += 1
 
             if k >= r.shape[0]:
@@ -114,36 +133,3 @@ class simple_perceptron_network:
                 r = permutation(x.shape[0])
                 k = 0
 
-
-
-if __name__ == '__main__':
-    base = load_mock(type='TRIANGLE_CLASSES')
-    y_out_of_c = pd.get_dummies(base['y'])
-    base = base.drop(['y'], axis=1)
-
-    base = concatenate([base[['x1', 'x2']], y_out_of_c], axis=1)
-
-
-    simple_net = simple_perceptron_network(epochs=10, number_of_neurons=3, learning_rate=0.01, activation_function='degree')
-
-    train, test = split_random(base, train_percentage=.8)
-    train, train_val = split_random(train, train_percentage=0.7)
-
-    x_train = train[:, :2]
-    y_train = train[:, 2:]
-
-    x_train_val = train_val[:, :2]
-    y_train_val = train_val[:, 2:]
-
-    x_test = test[:, :2]
-    y_test = test[:, 2:]
-
-
-    validation_alphas = linspace(0.015, 0.1, 20)
-    simple_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas)
-    y_out_simple_net = simple_net.predict(x_test)
-
-    metrics_calculator = metric(list(y_test), y_out_perceptron, types=['ACCURACY', 'AUC', 'precision',
-                                                                       'recall', 'f1_score', 'MCC'])
-    metric_results = metrics_calculator.calculate()
-    print(metric_results)
