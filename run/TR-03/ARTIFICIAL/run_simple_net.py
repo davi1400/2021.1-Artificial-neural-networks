@@ -1,4 +1,9 @@
-import threading
+import sys
+from pathlib import Path
+print(str(Path(__file__).parent.parent.parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +20,7 @@ from mlfwk.models import simple_perceptron_network
 from mlfwk.visualization import generate_space, coloring
 
 if __name__ == '__main__':
+    print("run artificial")
     final_result = {
         'ACCURACY': [],
         'std ACCURACY': [],
@@ -65,7 +71,7 @@ if __name__ == '__main__':
     base = base.drop(['y'], axis=1)
     base = concatenate([base[['x1', 'x2']], y_out_of_c], axis=1)
 
-    for realization in range(1):
+    for realization in range(20):
         train, test = split_random(base, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=.7)
 
