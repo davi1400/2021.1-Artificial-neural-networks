@@ -32,7 +32,7 @@ if __name__ == '__main__':
         'std precision': [],
         'recall': [],
         'std recall': [],
-        # 'best_cf': [],
+        'best_cf': [],
         'alphas': []
     }
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
         'f1_score': [],
         'precision': [],
         'recall': [],
-        # 'cf': [],
+        'cf': [],
         'alphas': []
     }
 
@@ -63,6 +63,7 @@ if __name__ == '__main__':
     plt.plot(classe2[:, 0], classe2[:, 1], 'm*')
     plt.xlabel("X1")
     plt.ylabel("X2")
+    plt.savefig(get_project_root() + '/run/TR-03/ARTIFICIAL/results/' + 'dataset_artificial.png')
     plt.show()
 
 
@@ -73,7 +74,7 @@ if __name__ == '__main__':
 
     for realization in range(20):
         train, test = split_random(base, train_percentage=.8)
-        train, train_val = split_random(train, train_percentage=.7)
+        train, train_val = split_random(train, train_percentage=.8)
 
         x_train = train[:, :2]
         y_train = train[:, 2:]
@@ -85,7 +86,7 @@ if __name__ == '__main__':
         y_test = test[:, 2:]
 
         validation_alphas = linspace(0.015, 0.1, 20)
-        simple_net = simple_perceptron_network(epochs=10000, number_of_neurons=3, learning_rate=0.1, activation_function='degree')
+        simple_net = simple_perceptron_network(epochs=1000, number_of_neurons=3, learning_rate=0.1, activation_function='degree')
         simple_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas)
 
         y_out_simple_net = simple_net.predict(x_test)
@@ -94,17 +95,17 @@ if __name__ == '__main__':
 
 
         metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
-        metric_results = metrics_calculator.calculate(average='micro')
+        metric_results = metrics_calculator.calculate(average='macro')
         print(metric_results)
 
-        # results['cf'].append((metric_results['ACCURACY'], metrics_calculator.confusion_matrix(y_test, y_out)))
+        results['cf'].append((metric_results['ACCURACY'], metrics_calculator.confusion_matrix(y_test, y_out, labels=[0, 1, 2])))
         results['alphas'].append(simple_net.learning_rate)
         results['realization'].append(realization)
         for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
             results[type].append(metric_results[type])
 
-    # results['cf'].sort(key=lambda x: x[0], reverse=True)
-    # final_result['best_cf'].append(results['cf'][0][1])
+    results['cf'].sort(key=lambda x: x[0], reverse=True)
+    final_result['best_cf'].append(results['cf'][0][1])
     final_result['alphas'].append(mean(results['alphas']))
     for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
         final_result[type].append(mean(results[type]))
@@ -113,16 +114,16 @@ if __name__ == '__main__':
 
     # ------------------------ PLOT -------------------------------------------------
 
-    # for i in range(len(final_result['best_cf'])):
-    #     plt.figure(figsize=(10, 7))
-    #
-    #     df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "01"],
-    #                          columns=[i for i in "01"])
-    #     sn.heatmap(df_cm, annot=True)
-    #
-    #     path = get_project_root() + '/run/TR-03/ARTIFICIAL/results/'
-    #     plt.savefig(path + "mat_confsuison_triangle.jpg")
-    #     plt.show()
+    for i in range(len(final_result['best_cf'])):
+        plt.figure(figsize=(10, 7))
+
+        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "012"],
+                             columns=[i for i in "012"])
+        sn.heatmap(df_cm, annot=True)
+
+        path = get_project_root() + '/run/TR-03/ARTIFICIAL/results/'
+        plt.savefig(path + "mat_confsuison_triangle.jpg")
+        plt.show()
 
 
 
@@ -161,7 +162,7 @@ if __name__ == '__main__':
     # #FFAAAA red
     # #AAAAFF blue
     coloring(plot_dict, ListedColormap(['#87CEFA', '#228B22', "#FF00FF"]), xlabel='x1', ylabel='x2',
-             title='mapa de cores com perceptron', xlim=[-0.1, 1.1], ylim=[-0.1, 1.1],
+             title='mapa de cores com Rede Perceptron', xlim=[-0.1, 1.1], ylim=[-0.1, 1.1],
              path=get_project_root() + '/run/TR-03/ARTIFICIAL/results/' + 'color_map_triangle_simple_net.jpg', save=True)
     # print('dataset shape %s' % Counter(base[:, 2]))
 

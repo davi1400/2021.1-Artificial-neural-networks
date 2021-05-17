@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
 
         metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
-        metric_results = metrics_calculator.calculate(average='micro')
+        metric_results = metrics_calculator.calculate(average='macro')
         print(metric_results)
 
         results['alphas'].append(simple_net.learning_rate)
@@ -122,6 +122,19 @@ if __name__ == '__main__':
         final_result[type].append(mean(results[type]))
         final_result['std ' + type].append(std(results[type]))
 
+
+    # ------------------------ PLOT -------------------------------------------------
+
+    # for i in range(len(final_result['best_cf'])):
+    #     plt.figure(figsize=(10, 7))
+    #
+    #     df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "012"],
+    #                          columns=[i for i in "012"])
+    #     sn.heatmap(df_cm, annot=True)
+    #
+    #     path = get_project_root() + '/run/TR-03/ARTIFICIAL/results/'
+    #     plt.savefig(path + "mat_confsuison_triangle.jpg")
+    #     plt.show()
 
 
     print(pd.DataFrame(final_result))

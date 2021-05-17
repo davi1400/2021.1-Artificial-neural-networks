@@ -26,6 +26,7 @@ class metric:
 
     def accuracy(self, y_true, y_pred, average):
         return accuracy_score(y_true, y_pred)
+        # return (y_pred == y_true).sum() / (1.0 * len(y_true))
 
     def precision(self, y_true, y_pred, average):
         return precision_score(y_true, y_pred, average=average)
@@ -66,6 +67,10 @@ class metric:
         }
 
         return func_possibles[type](y_true, y_pred, average)
+
+    @staticmethod
+    def confusion_matrix(y_true, y_pred, labels):
+        return confusion_matrix(y_true, y_pred, labels=labels)
 
     @staticmethod
     def confusion_matrix_binary(y_true, y_pred):

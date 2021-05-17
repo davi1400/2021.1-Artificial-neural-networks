@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 from pandas import read_csv
+from scipy.io import arff
 from pandas.core.frame import DataFrame
 from mlfwk.utils import get_project_root
 from numpy import linspace, random, cos, sin, concatenate, array, ones, pi, c_, zeros, pi, where
 from numpy.random import randint, rand, seed
 
-seed(42)
+seed(1)
 
 
 def load_base(path='', column_names=None, type=None):
@@ -13,6 +14,10 @@ def load_base(path='', column_names=None, type=None):
 
     if type == 'csv':
         base_result = read_csv(path, names=column_names)
+        return base_result
+    if type == 'arff':
+        base_result = arff.loadarff(path)
+        base_result = DataFrame(base_result[0])
     else:
         base_result = None
 
@@ -59,7 +64,7 @@ def load_mock(type=None):
 
     if type == 'TRIANGLE_CLASSES':
         t = linspace(0, 2 * pi, 50)
-        r = rand(50) / 1.38
+        r = rand(50) / 1.58
         data1 = c_[array((4 + r * cos(t))), array((4 + r * sin(t)))]
         data2 = c_[array((5 + r * cos(t))), array((2 + r * sin(t)))]
         data3 = c_[array((6 + r * cos(t))), array((4 + r * sin(t)))]

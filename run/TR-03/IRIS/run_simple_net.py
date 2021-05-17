@@ -75,7 +75,7 @@ if __name__ == '__main__':
         y_test = test[:, 4:]
 
         validation_alphas = linspace(0.01, 0.1, 20)
-        simple_net = simple_perceptron_network(epochs=10000, number_of_neurons=3, learning_rate=0.01, activation_function='degree')
+        simple_net = simple_perceptron_network(epochs=1000, number_of_neurons=3, learning_rate=0.01, activation_function='degree')
         simple_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas)
 
         y_out_simple_net = simple_net.predict(x_test)
@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
 
         metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
-        metric_results = metrics_calculator.calculate(average='micro')
+        metric_results = metrics_calculator.calculate(average='macro')
         print(metric_results)
 
         results['alphas'].append(simple_net.learning_rate)
@@ -98,6 +98,19 @@ if __name__ == '__main__':
         final_result['std ' + type].append(std(results[type]))
 
 
+
+    # ------------------------ PLOT -------------------------------------------------
+
+    # for i in range(len(final_result['best_cf'])):
+    #     plt.figure(figsize=(10, 7))
+    #
+    #     df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in ['']],
+    #                          columns=[i for i in ['']])
+    #     sn.heatmap(df_cm, annot=True)
+    #
+    #     path = get_project_root() + '/run/TR-03/IRIS/results/'
+    #     plt.savefig(path + "mat_confsuison_iris.jpg")
+    #     plt.show()
 
     print(pd.DataFrame(final_result))
     # del final_result['best_cf']

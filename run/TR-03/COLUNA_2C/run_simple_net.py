@@ -22,6 +22,15 @@ from mlfwk.models import simple_perceptron_network
 from mlfwk.readWrite import load_base
 from mlfwk.visualization import generate_space, coloring
 
+
+def predicao(Y):
+    y = np.zeros((Y.shape[0], 1))
+    for j in range(Y.shape[0]):
+        i = np.where(Y[j, :] == Y[j, :].max())[0][0]
+        y[j] = i
+    return y
+
+
 if __name__ == '__main__':
     print("run coluna 2 classes")
     final_result = {
@@ -92,12 +101,12 @@ if __name__ == '__main__':
         simple_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas)
 
         y_out_simple_net = simple_net.predict(x_test)
-        y_out = out_of_c_to_label(y_out_simple_net)
-        y_test = out_of_c_to_label(y_test)
+        y_out = predicao(y_out_simple_net)
+        y_test = predicao(y_test)
 
 
         metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
-        metric_results = metrics_calculator.calculate(average='micro')
+        metric_results = metrics_calculator.calculate()
         print(metric_results)
 
         results['alphas'].append(simple_net.learning_rate)
@@ -111,6 +120,18 @@ if __name__ == '__main__':
         final_result['std ' + type].append(std(results[type]))
 
 
+    # ------------------------ PLOT -------------------------------------------------
+
+    # for i in range(len(final_result['best_cf'])):
+    #     plt.figure(figsize=(10, 7))
+    #
+    #     df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "012"],
+    #                          columns=[i for i in "012"])
+    #     sn.heatmap(df_cm, annot=True)
+    #
+    #     path = get_project_root() + '/run/TR-03/ARTIFICIAL/results/'
+    #     plt.savefig(path + "mat_confsuison_triangle.jpg")
+    #     plt.show()
 
     print(pd.DataFrame(final_result))
     # del final_result['best_cf']

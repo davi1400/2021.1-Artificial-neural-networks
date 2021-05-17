@@ -70,3 +70,7 @@ def out_of_c_to_label(Y):
         i = where(Y[j, :] == Y[j, :].max())[0][0]
         y[j] = i
     return y
+
+
+if __name__ == '__main__':
+    get_project_root()
