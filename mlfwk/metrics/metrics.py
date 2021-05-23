@@ -17,7 +17,7 @@ class metric:
         self.y_real = real_outputs
         self.types = types
 
-    def calculate(self, average='binary'):
+    def calculate(self, average=None):
         result = {}
         for metric in self.types:
             result.update({metric: self.one_by_one(metric, self.y_real, self.y_pred, average)})

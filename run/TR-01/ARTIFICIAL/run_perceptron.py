@@ -21,8 +21,8 @@ if __name__ == '__main__':
         'std ACCURACY': [],
         'AUC': [],
         'std AUC': [],
-        'MCC': [],
-        'std MCC': [],
+        # 'MCC': [],
+        # 'std MCC': [],
         'f1_score': [],
         'std f1_score': [],
         'precision': [],
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         'realization': [],
         'ACCURACY': [],
         'AUC': [],
-        'MCC': [],
+        # 'MCC': [],
         'f1_score': [],
         'precision': [],
         'recall': [],
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     plt.plot(neg[:, 0], neg[:, 1], 'ro')
     plt.show()
 
-    for realization in range(20):
+    for realization in range(1):
         train, test = split_random(base, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=0.7)
 
@@ -78,18 +78,16 @@ if __name__ == '__main__':
         y_out_perceptron = classifier_perceptron.predict(x_test)
 
         metrics_calculator = metric(list(y_test), y_out_perceptron, types=['ACCURACY', 'AUC', 'precision',
-                                                                    'recall', 'f1_score', 'MCC'])
-        metric_results = metrics_calculator.calculate()
+                                                                    'recall', 'f1_score'])
+        metric_results = metrics_calculator.calculate(average='macro')
 
-        if metric_results['ACCURACY'] == 1.0:
-            pass
 
         results['cf'].append((metric_results['ACCURACY'], metrics_calculator.confusion_matrix(list(y_test),
-                                                                                              y_out_perceptron)))
+                                                                                              y_out_perceptron, [0, 1])))
         results['erros'].append(classifier_perceptron.errors_per_epoch)
         results['alphas'].append(classifier_perceptron.learning_rate)
         results['realization'].append(realization)
-        for type in ['ACCURACY', 'AUC', 'precision', 'recall', 'f1_score', 'MCC']:
+        for type in ['ACCURACY', 'AUC', 'precision', 'recall', 'f1_score']:
             results[type].append(metric_results[type])
 
 
@@ -98,7 +96,7 @@ if __name__ == '__main__':
     final_result['best_cf'].append(results['cf'][0][1])
     final_result['ErrosxEpocohs'].append(results['erros'][0])
     final_result['alphas'].append(mean(results['alphas']))
-    for type in ['ACCURACY', 'AUC', 'precision', 'recall', 'f1_score', 'MCC']:
+    for type in ['ACCURACY', 'AUC', 'precision', 'recall', 'f1_score']:
         final_result[type].append(mean(results[type]))
         final_result['std ' + type].append(std(results[type]))
 

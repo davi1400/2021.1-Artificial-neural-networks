@@ -75,7 +75,7 @@ if __name__ == '__main__':
         y_test = test[:, 4:]
 
         validation_alphas = linspace(0.01, 0.1, 20)
-        simple_net = simple_perceptron_network(epochs=1000, number_of_neurons=3, learning_rate=0.01, activation_function='degree')
+        simple_net = simple_perceptron_network(epochs=10000, number_of_neurons=3, learning_rate=0.01, activation_function='degree')
         simple_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas)
 
         y_out_simple_net = simple_net.predict(x_test)

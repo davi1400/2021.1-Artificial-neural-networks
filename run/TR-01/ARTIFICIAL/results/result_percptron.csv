@@ -1,2 +1,2 @@
-,ACCURACY,std ACCURACY,AUC,std AUC,MCC,std MCC,f1_score,std f1_score,precision,std precision,recall,std recall,alphas
-0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.023947368421052634
+,ACCURACY,std ACCURACY,AUC,std AUC,f1_score,std f1_score,precision,std precision,recall,std recall,alphas
+0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.015

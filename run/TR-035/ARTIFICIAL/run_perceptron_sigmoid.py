@@ -16,7 +16,7 @@ from numpy import where, append, ones, array, zeros, mean, argmax, linspace, con
 from mlfwk.metrics import metric
 from mlfwk.readWrite import load_mock
 from mlfwk.utils import split_random, get_project_root, normalization, out_of_c_to_label
-from mlfwk.models import simple_perceptron_network
+from mlfwk.models import sigmoid_perceptron_network
 from mlfwk.visualization import generate_space, coloring
 
 if __name__ == '__main__':
@@ -47,32 +47,18 @@ if __name__ == '__main__':
         'alphas': []
     }
 
-    base = load_mock(type='TRIANGLE_CLASSES')
-    # normalizar a base
-    base[['x1', 'x2']] = normalization(base[['x1', 'x2']], type='min-max')
+    # sem normalização
+    base = load_mock(type='LOGICAL_AND')
+    validation_alphas = linspace(0.015, 0.1, 20)
 
-    x = array(base[['x1', 'x2']])
-    y = array(base[['y']])
-
-    classe0 = x[np.where(y == 0)[0]]
-    classe1 = x[np.where(y == 1)[0]]
-    classe2 = x[np.where(y == 2)[0]]
-
-    plt.plot(classe0[:, 0], classe0[:, 1], 'b^')
-    plt.plot(classe1[:, 0], classe1[:, 1], 'go')
-    plt.plot(classe2[:, 0], classe2[:, 1], 'm*')
-    plt.xlabel("X1")
-    plt.ylabel("X2")
-    plt.savefig(get_project_root() + '/run/TR-03/ARTIFICIAL/results/' + 'dataset_artificial.png')
+    pos = base[:, :2][where(base[:, 2] == 1)[0]]
+    neg = base[:, :2][where(base[:, 2] == 0)[0]]
+    plt.plot(pos[:, 0], pos[:, 1], 'bo')
+    plt.plot(neg[:, 0], neg[:, 1], 'ro')
     plt.show()
 
 
-    y_out_of_c = pd.get_dummies(base['y'])
-
-    base = base.drop(['y'], axis=1)
-    base = concatenate([base[['x1', 'x2']], y_out_of_c], axis=1)
-
-    for realization in range(20):
+    for realization in range(1):
         train, test = split_random(base, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=.8)
 
@@ -86,20 +72,17 @@ if __name__ == '__main__':
         y_test = test[:, 2:]
 
         validation_alphas = linspace(0.015, 0.1, 20)
-        simple_net = simple_perceptron_network(epochs=10000, number_of_neurons=3, learning_rate=0.1, activation_function='degree')
-        simple_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas)
+        sigmoid_net = sigmoid_perceptron_network(epochs=1000, number_of_neurons=1, learning_rate=0.1, activation_function='sigmoid logistic')
+        sigmoid_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas, validation=False)
 
-        y_out_simple_net = simple_net.predict(x_test)
-        y_out = out_of_c_to_label(y_out_simple_net)
-        y_test = out_of_c_to_label(y_test)
-
+        y_out = sigmoid_net.predict(x_test)
 
         metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
         metric_results = metrics_calculator.calculate(average='macro')
         print(metric_results)
 
-        results['cf'].append((metric_results['ACCURACY'], metrics_calculator.confusion_matrix(y_test, y_out, labels=[0, 1, 2])))
-        results['alphas'].append(simple_net.learning_rate)
+        results['cf'].append((metric_results['ACCURACY'], metrics_calculator.confusion_matrix(y_test, y_out, labels=[0, 1])))
+        results['alphas'].append(sigmoid_net.learning_rate)
         results['realization'].append(realization)
         for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
             results[type].append(metric_results[type])
@@ -117,55 +100,55 @@ if __name__ == '__main__':
     for i in range(len(final_result['best_cf'])):
         plt.figure(figsize=(10, 7))
 
-        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "012"],
-                             columns=[i for i in "012"])
+        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "01"],
+                             columns=[i for i in "01"])
         sn.heatmap(df_cm, annot=True)
 
-        path = get_project_root() + '/run/TR-03/ARTIFICIAL/results/'
+        path = get_project_root() + '/run/TR-035/ARTIFICIAL/results/'
         plt.savefig(path + "mat_confsuison_triangle.jpg")
         plt.show()
 
 
-
+    x = base[:, :2]
+    y = base[:, 2]
     xx, yy = generate_space(x)
     space = c_[xx.ravel(), yy.ravel()]
 
     point = {
-        0: 'bo',
-        1: 'go',
-        2: 'mo'
+        0: 'ro',
+        1: 'bo'
     }
     marker = {
-        0: '^',
-        1: 'o',
-        2: '*'
+        0: 's',
+        1: 'D'
     }
 
     # O clasificador da vigesima realização
     plot_dict = {
         'xx': xx,
         'yy': yy,
-        'Z': out_of_c_to_label(simple_net.predict(space)),
+        'Z': array(sigmoid_net.predict(space, [0, 1])),
         'classes': {}
     }
 
     # utilizando o x_test e o y_test da ultima realização
-    for c in [0, 1, 2]:
+    for c in [0, 1]:
         plot_dict['classes'].update({
             c: {
-                'X': x[where(y == c)[0]],
+                'X': x_test[where(y_test == c)[0]],
                 'point': point[c],
                 'marker': marker[c]
             }
         })
 
+
     # #FFAAAA red
     # #AAAAFF blue
-    coloring(plot_dict, ListedColormap(['#87CEFA', '#228B22', "#FF00FF"]), xlabel='x1', ylabel='x2',
-             title='mapa de cores com Rede Perceptron', xlim=[-0.1, 1.1], ylim=[-0.1, 1.1],
-             path=get_project_root() + '/run/TR-03/ARTIFICIAL/results/' + 'color_map_triangle_simple_net.jpg', save=True)
+    coloring(plot_dict, ListedColormap(['#FFAAAA', '#AAAAFF']), xlabel='x1', ylabel='x2',
+             title='mapa de cores com Perceptron sigmoid',
+             path=get_project_root() + '/run/TR-035/ARTIFICIAL/results/' + 'color_map_triangle_sigmoid_net.jpg', save=True)
     # print('dataset shape %s' % Counter(base[:, 2]))
 
     print(pd.DataFrame(final_result))
     # del final_result['best_cf']
-    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-03/ARTIFICIAL/results/' + 'result_simple_net.csv')
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-035/ARTIFICIAL/results/' + 'result_sigmoid_net.csv')

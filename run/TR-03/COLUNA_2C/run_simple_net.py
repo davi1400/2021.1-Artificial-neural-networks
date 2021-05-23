@@ -101,8 +101,8 @@ if __name__ == '__main__':
         simple_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas)
 
         y_out_simple_net = simple_net.predict(x_test)
-        y_out = predicao(y_out_simple_net)
-        y_test = predicao(y_test)
+        y_out = out_of_c_to_label(y_out_simple_net)
+        y_test = out_of_c_to_label(y_test)
 
 
         metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
