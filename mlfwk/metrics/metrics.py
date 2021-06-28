@@ -17,34 +17,26 @@ class metric:
         self.y_real = real_outputs
         self.types = types
 
-    def calculate(self):
+    def calculate(self, average=None):
         result = {}
         for metric in self.types:
-            result.update({metric: self.one_by_one(metric, self.y_real, self.y_pred)})
+            result.update({metric: self.one_by_one(metric, self.y_real, self.y_pred, average)})
 
         return result
 
-    def accuracy(self, y_true, y_pred):
-        cf = self.confusion_matrix(y_true, y_pred)
-        return (cf[0][0]+cf[1][1])/sum(sum(cf))
+    def accuracy(self, y_true, y_pred, average):
+        return accuracy_score(y_true, y_pred)
+        # return (y_pred == y_true).sum() / (1.0 * len(y_true))
 
-    def precision(self, y_true, y_pred):
-        cf = self.confusion_matrix(y_true, y_pred)
-        try:
-            if np.isnan(cf[0][0]/(cf[0][0]+cf[1][0])):
-                return 0
-            else:
-                return cf[0][0] / (cf[0][0] + cf[1][0])
-        except ValueError or Exception:
-            print("Error")
+    def precision(self, y_true, y_pred, average):
+        return precision_score(y_true, y_pred, average=average)
 
-    def recall(self, y_true, y_pred):
-        cf = self.confusion_matrix(y_true, y_pred)
-        return cf[0][0]/(cf[0][0]+cf[0][1])
+    def recall(self, y_true, y_pred, average):
+        return recall_score(y_true, y_pred, average=average)
 
-    def f1(self, y_true, y_pred):
-        precision = self.precision(y_true, y_pred)
-        recall = self.recall(y_true, y_pred)
+    def f1(self, y_true, y_pred, average):
+        precision = self.precision(y_true, y_pred, average=average)
+        recall = self.recall(y_true, y_pred, average=average)
 
         try:
             if np.isnan((2*precision*recall)/(precision+recall)):
@@ -54,13 +46,13 @@ class metric:
         except Exception:
             print("error")
 
-    def mse(self, y_true, y_pred):
+    def mse(self, y_true, y_pred, average):
         return mean_squared_error(y_true, y_pred)
 
-    def rmse(self, y_true, y_pred):
+    def rmse(self, y_true, y_pred, average):
         return sqrt(self.mse(y_true, y_pred))
 
-    def one_by_one(self, type, y_true, y_pred):
+    def one_by_one(self, type, y_true, y_pred, average='binary'):
 
         # o AUC e MCC estão sendo calculados com o sklearn, TODO -> criar função para calculalos na mão
         func_possibles = {
@@ -74,10 +66,14 @@ class metric:
             'RMSE': self.rmse
         }
 
-        return func_possibles[type](y_true, y_pred)
+        return func_possibles[type](y_true, y_pred, average)
 
     @staticmethod
-    def confusion_matrix(y_true, y_pred):
+    def confusion_matrix(y_true, y_pred, labels):
+        return confusion_matrix(y_true, y_pred, labels=labels)
+
+    @staticmethod
+    def confusion_matrix_binary(y_true, y_pred):
         """
 
         :param y_true:

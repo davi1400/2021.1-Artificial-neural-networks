@@ -4,4 +4,6 @@
 
 -[x] K-nn(k-nearest neighbors algorithm)
 
--[ ] DMC
+-[x] DMC
+
+-[x] Percptron

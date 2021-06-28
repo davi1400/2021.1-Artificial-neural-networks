@@ -1,0 +1,8 @@
+
+- Utilizar os comandos (1) e (2) para rodar os codigos:
+    (1) python3 run/TR-02/ARTIFICIAL/run_adaline_1.py
+    (2) python3 run/TR-02/ARTIFICIAL/run_adaline_2.py
+
+
+obs: Deve-se estar dentro da pasta M-learn. 
+obs: Ao plotar imagens, esta deve ser fechada para dar proseguimento.

@@ -12,34 +12,38 @@ def generate_space(X):
     return xx, yy
 
 
-def coloring(plot_dict, color_map, title=None, xlabel=None, ylabel=None, save=False, path=''):
+def coloring(plot_dict, color_map, title=None, xlabel=None, ylabel=None, xlim=[], ylim=[], save=False, path=''):
     """
-    :param save:
-    :param ylabel:
-    :param xlabel:
-    :param title:
-    :param path:
-    :param color_map:
-    :param plot_dict:  {
-        'xx': meshgrid,
-        'yy': meshgrid
-        'Z': [y_1, y_2, ..., y_n]
-        'classe_0': {
-                X: [x_1, x_2 .., x_n] 2-D
-                point: string
-                marker: string
-            }
-            .
-            .
-            .
-        'classe_n':{
-                X: [x_1, x_2 .., x_n] 2-D
-                point: string
-                marker: string
-            }
-    }
-    :return:
 
+    @param plot_dict:
+        :param plot_dict:  {
+            'xx': meshgrid,
+            'yy': meshgrid
+            'Z': [y_1, y_2, ..., y_n]
+            'classe_0': {
+                    X: [x_1, x_2 .., x_n] 2-D
+                    point: string
+                    marker: string
+                }
+                .
+                .
+                .
+            'classe_n':{
+                    X: [x_1, x_2 .., x_n] 2-D
+                    point: string
+                    marker: string
+                }
+        }
+        :return:
+    @param color_map:
+    @param title:
+    @param xlabel:
+    @param ylabel:
+    @param xlim:
+    @param ylim:
+    @param save:
+    @param path:
+    @return:
     """
     plot_dict['Z'] = plot_dict['Z'].reshape(plot_dict['xx'].shape)
     plt.pcolormesh(plot_dict['xx'], plot_dict['yy'], plot_dict['Z'], cmap=color_map)
@@ -49,6 +53,10 @@ def coloring(plot_dict, color_map, title=None, xlabel=None, ylabel=None, save=Fa
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    if len(xlim) > 0:
+        plt.xlim(xlim)
+    if len(ylim) > 0:
+        plt.ylim(ylim)
     plt.title(title)
 
     if save:

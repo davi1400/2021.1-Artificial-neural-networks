@@ -61,6 +61,7 @@ if __name__ == '__main__':
     base = concatenate([array(x, ndmin=2), array(F, ndmin=2)], axis=0).T
     validation_alphas = linspace(0.015, 0.1, 20)
     for realization in range(20):
+        print("Realization" + str(realization))
         train, test = split_random(base, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=0.7)
 

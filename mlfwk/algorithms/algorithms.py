@@ -38,6 +38,10 @@ def learning_rule_perceptron(derivate_y, error, x, learning_rate):
     return array((learning_rate * (derivate_y * error * x)), ndmin=2, dtype=np.float).T
 
 
+def learning_rule_multilayer_perceptron():
+    pass
+
+
 def learning_rule_adaline(error, x, learning_rate):
     """
 
@@ -63,6 +67,6 @@ def heaveside(y):
     for i in range(len(y)):
         if y[i] > 0:
             y[i] = 1
-        elif y[i] < 0:
+        elif y[i] <= 0:
             y[i] = 0
     return y

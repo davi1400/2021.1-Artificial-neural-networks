@@ -49,6 +49,7 @@ if __name__ == '__main__':
     validation_alphas = linspace(0.015, 0.1, 20)
 
     for realization in range(20):
+        print("Realization" + str(realization))
         train, test = split_random(base, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=0.7)
 

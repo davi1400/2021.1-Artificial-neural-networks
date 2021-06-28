@@ -1,5 +1,5 @@
 from pathlib import Path
-from numpy import ndarray, zeros
+from numpy import ndarray, zeros, where
 from numpy.random import permutation
 from pandas.core.frame import DataFrame
 from sklearn.preprocessing import StandardScaler
@@ -62,3 +62,15 @@ def one_out_of_c(array, n):
         output[i][int(array[i])] = 1
 
     return output
+
+
+def out_of_c_to_label(Y):
+    y = zeros((Y.shape[0], 1))
+    for j in range(Y.shape[0]):
+        i = where(Y[j, :] == Y[j, :].max())[0][0]
+        y[j] = i
+    return y
+
+
+if __name__ == '__main__':
+    get_project_root()
