@@ -35,7 +35,7 @@ if __name__ == '__main__':
         'std precision': [],
         'recall': [],
         'std recall': [],
-        # 'best_cf': [],
+        'best_cf': [],
         'alphas': []
     }
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         'f1_score': [],
         'precision': [],
         'recall': [],
-        # 'cf': [],
+        'cf': [],
         'alphas': []
     }
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     base = base.drop(['Class'], axis=1)
     base = concatenate([base[features], y_out_of_c], axis=1)
 
-    for realization in range(20):
+    for realization in range(5):
         train, test = split_random(base, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=.8)
 
@@ -99,8 +99,8 @@ if __name__ == '__main__':
         y_test = test[:, len(features):]
 
         validation_alphas = [0.15]
-        hidden = 2 * np.arange(1, 4)
-        simple_net = MultiLayerPerceptron(M, C, epochs=10000)
+        hidden = 4 * np.arange(2, 5)
+        simple_net = MultiLayerPerceptron(M, C, epochs=1000)
         simple_net.fit(x_train, y_train, x_train_val=x_train_val, y_train_val=y_train_val, alphas=validation_alphas,
                        hidden=hidden)
 
@@ -113,10 +113,17 @@ if __name__ == '__main__':
         metric_results = metrics_calculator.calculate(average='macro')
         print(metric_results)
 
-        results['alphas'].append(simple_net.learning_rate)
+        results['cf'].append((metric_results['ACCURACY'],
+                              metrics_calculator.confusion_matrix(list(y_test), y_out, labels=list(range(C)))))
+
+        results['alphas'].append(simple_net.lr)
         results['realization'].append(realization)
         for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
             results[type].append(metric_results[type])
+
+    results['cf'].sort(key=lambda x: x[0], reverse=True)
+    final_result['best_cf'].append(results['cf'][0][1])
+
 
     final_result['alphas'].append(mean(results['alphas']))
     for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
@@ -127,16 +134,16 @@ if __name__ == '__main__':
 
     # ------------------------ PLOT -------------------------------------------------
     #
-    # for i in range(len(final_result['best_cf'])):
-    #     plt.figure(figsize=(10, 7))
-    #
-    #     df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "012"],
-    #                          columns=[i for i in "012"])
-    #     sn.heatmap(df_cm, annot=True)
-    #
-    #     path = get_project_root() + '/run/TR-03/ARTIFICIAL/results/'
-    #     plt.savefig(path + "mat_confsuison_triangle.jpg")
-    #     plt.show()
+    for i in range(len(final_result['best_cf'])):
+        plt.figure(figsize=(10, 7))
+
+        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in range(C)],
+                             columns=[i for i in range(C)])
+        sn.heatmap(df_cm, annot=True)
+
+        path = get_project_root() + '/run/TR-05/CANCER/results/'
+        plt.savefig(path + "mat_confsuison.jpg")
+        plt.show()
 
     print(pd.DataFrame(final_result))
     # del final_result['best_cf']

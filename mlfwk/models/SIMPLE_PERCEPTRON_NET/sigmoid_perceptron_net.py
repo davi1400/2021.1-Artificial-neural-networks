@@ -17,7 +17,8 @@ from mlfwk.utils import split_random, get_project_root, one_out_of_c, normalizat
 
 
 class sigmoid_perceptron_network:
-    def __init__(self, epochs=1000, number_of_neurons=1, learning_rate=.01, activation_function='sigmoid logistic'):
+    def __init__(self, epochs=1000, number_of_neurons=1, learning_rate=.01, activation_function='sigmoid logistic',
+                 case='max'):
         """
 
             Performs a neural network with jsut one layer(one layer of neurons + input layer), using in default sigmoid
@@ -27,13 +28,14 @@ class sigmoid_perceptron_network:
         @param number_of_neurons: number of neurons in output layer
         @param learning_rate: lambda
         @param activation_function: the type of activate funtion in each neuron
+        @param max:
         """
 
         self.epochs = epochs
         self.number_of_neurons = number_of_neurons
         self.learning_rate = learning_rate
         self.activation_function = activation_function
-
+        self.case = case
         self.network = {}
 
     def add_bias(self, x):
@@ -69,7 +71,7 @@ class sigmoid_perceptron_network:
         N, M = x.shape
         # Create all neurons
         for i in range(self.number_of_neurons):
-            neuron = generic_neuron(N, M, activation_function=self.activation_function)
+            neuron = generic_neuron(N, M, activation_function=self.activation_function, case=self.case)
             self.network.update({
                 'neuron-' + str(i): neuron
             })
@@ -96,7 +98,7 @@ class sigmoid_perceptron_network:
         N, M = x.shape
         validation_accuracys = []
 
-        y = array(y, ndmin=2).T
+        y = array(y, ndmin=2)
         for alpha in alphas:
             K = 10
             k_validation_accuracys = []
@@ -144,7 +146,7 @@ class sigmoid_perceptron_network:
             output = self.foward(example)
 
             if self.number_of_neurons > 1:
-                pass
+                output = self.greater_prob(output)
             else:
                 # Case of perceptron, just one neuron in output layer
                 output = self.threshold(output['neuron-0'])
@@ -169,7 +171,7 @@ class sigmoid_perceptron_network:
         outputs = {}
         for neuron_key in self.network.keys():
             outputs.update({
-                neuron_key: self.network[neuron_key].threshold(array(y, ndmin=2))
+                neuron_key: self.network[neuron_key].threshold(array(y[neuron_key], ndmin=2))
             })
 
         return outputs
@@ -180,7 +182,19 @@ class sigmoid_perceptron_network:
         @param y:
         @return:
         """
-        pass
+        outputs = {}
+        indice_on = argmax(list(y.values()))
+
+        # First make all zero values
+        for i in range(self.number_of_neurons):
+            outputs.update({
+                'neuron-' + str(i): array([0.0])
+            })
+
+        # and is one the max value, or the greater probability
+        outputs['neuron-' + str(indice_on)] = array([1.0])
+
+        return outputs
 
     def foward(self, y):
         """
@@ -252,7 +266,7 @@ class sigmoid_perceptron_network:
             y_output = self.foward(x[r[k]])
 
             if self.number_of_neurons > 1:
-                pass
+                y_predict = self.greater_prob(y_output)
             else:
                 y_predict = self.threshold(y_output['neuron-0'])
 

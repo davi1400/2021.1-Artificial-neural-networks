@@ -46,10 +46,10 @@ class metric:
         except Exception:
             print("error")
 
-    def mse(self, y_true, y_pred, average):
+    def mse(self, y_true, y_pred, average=None):
         return mean_squared_error(y_true, y_pred)
 
-    def rmse(self, y_true, y_pred, average):
+    def rmse(self, y_true, y_pred, average=None):
         return sqrt(self.mse(y_true, y_pred))
 
     def one_by_one(self, type, y_true, y_pred, average='binary'):

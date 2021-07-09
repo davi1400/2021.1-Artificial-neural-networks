@@ -97,7 +97,7 @@ if __name__ == '__main__':
         }
         validation_alphas = linspace(0.015, 0.01, 20)
 
-        for realization in range(20):
+        for realization in range(1):
             train, test = split_random(iris_base, train_percentage=0.8)
             train, train_val = split_random(train, train_percentage=0.8)
 
@@ -155,7 +155,7 @@ if __name__ == '__main__':
         sn.heatmap(df_cm, annot=True)
 
         path = get_project_root() + '/run/TR-035/IRIS/results/'
-        plt.savefig(path + 'mat_confsuison ' + final_result['versus'][i] + ".jpg")
+        plt.savefig(path + 'mat_confsuison_hyper' + final_result['versus'][i] + ".jpg")
         plt.show()
 
     # for i in range(len(final_result['ErrosxEpocohs'])):

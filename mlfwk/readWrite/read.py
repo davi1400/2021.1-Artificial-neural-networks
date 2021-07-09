@@ -62,6 +62,13 @@ def load_mock(type=None):
 
         return concatenate([X, Y], axis=1)
 
+    if type == 'MOCK_SENO':
+        X1 = linspace(-10, 10, 500)
+        Barulho = (-1 + (1 - (-1)) * rand(500)) * 2.0
+        Y = (3.0 * sin(X1) + 1) + Barulho
+
+        return DataFrame(concatenate([X1.reshape(X1.shape[0], 1), Y.reshape(Y.shape[0], 1)], axis=1), columns=["x1", "y"])
+
     if type == 'TRIANGLE_CLASSES':
         t = linspace(0, 2 * pi, 50)
         r = rand(50) / 1.58
