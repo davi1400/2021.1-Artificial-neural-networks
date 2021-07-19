@@ -1,8 +1,10 @@
 import sys
 from pathlib import Path
-
 print(str(Path(__file__).parent.parent.parent.parent))
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+
+import warnings
+warnings.filterwarnings("ignore")
 
 import pandas as pd
 import numpy as np
@@ -17,10 +19,11 @@ from mlfwk.metrics import metric
 from mlfwk.readWrite import load_mock
 from mlfwk.utils import split_random, get_project_root, normalization, out_of_c_to_label
 from mlfwk.models import RadialBasisFunction
+from mlfwk.readWrite import load_base
 from mlfwk.visualization import generate_space, coloring
 
 if __name__ == '__main__':
-    print("run artificial XOR")
+    print("run breast cancer")
     final_result = {
         'ACCURACY': [],
         'std ACCURACY': [],
@@ -47,52 +50,63 @@ if __name__ == '__main__':
         'alphas': []
     }
 
-    base = pd.DataFrame(load_mock(type='LOGICAL_XOR'), columns=['x1', 'x2', 'y'])
-    base[['x1', 'x2']] = normalization(base[['x1', 'x2']], type='min-max')
+    # carregar a base
+    base = load_base(path='breast-cancer-wisconsin.data', type='csv')
+    base = base.drop(['Sample code number'], axis=1)
 
-    x = array(base[['x1', 'x2']])
-    y = array(base[['y']])
+    # features
+    features = ['Clump Thickness', 'Uniformity of Cell Size', 'Uniformity of Cell Shape', 'Marginal Adhesion',
+       'Single Epithelial Cell Size', 'Bare Nuclei', 'Bland Chromatin', 'Normal Nucleoli', 'Mitoses']
 
-    classe0 = x[np.where(y == 0)[0]]
-    classe1 = x[np.where(y == 1)[0]]
+    print(base.info())
 
-    plt.plot(classe0[:, 0], classe0[:, 1], 'b^')
-    plt.plot(classe1[:, 0], classe1[:, 1], 'go')
-    plt.xlabel("X1")
-    plt.ylabel("X2")
-    plt.savefig(get_project_root() + '/run/TR-05/XOR/results/' + 'dataset_xor_artificial.png')
-    plt.show()
+    # ----------------------------- Clean the data ----------------------------------------------------------------
 
-    # ----------------------- one - hot ---------------------------------------------------
+    # The values at the column Bare Nuclei are all strings so we have to transform to int each of them.
+    for unique_value in base['Bare Nuclei']:
+        if unique_value != '?':
+            base['Bare Nuclei'][base['Bare Nuclei'] == unique_value] = int(unique_value)
+
+    # ? -> mean of column
+    base['Bare Nuclei'][base['Bare Nuclei'] == '?'] = int(np.mean(base['Bare Nuclei'][base['Bare Nuclei'] != '?']))
+
+    # -------------------------- Normalization ------------------------------------------------------------------
+
+    # normalizar a base
+    base[features] = (normalization(base[features], type='min-max')).to_numpy(dtype=np.float)
+
+
+    # ------------------------------------------------------------------------------------------------------------
     N, M = base.shape
-    C = len(base['y'].unique())
+    C = len(base['Class'].unique())
 
-    y_out_of_c = pd.get_dummies(base['y'])
-    base = concatenate([base[['x1', 'x2']], y_out_of_c], axis=1)
+    y_out_of_c = pd.get_dummies(base['Class'])
 
-    # --------------------------------------------------------------------------------------
+    base = base.drop(['Class'], axis=1)
+    base = concatenate([base[features], y_out_of_c], axis=1)
 
     for realization in range(20):
         train, test = split_random(base, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=.8)
 
-        x_train = train[:, :2]
-        y_train = train[:, 2:]
+        x_train = train[:, :len(features)]
+        y_train = train[:, len(features):]
 
-        x_train_val = train_val[:, :2]
-        y_train_val = train_val[:, 2:]
+        x_train_val = train_val[:, :len(features)]
+        y_train_val = train_val[:, len(features):]
 
-        x_test = test[:, :2]
-        y_test = test[:, 2:]
+        x_test = test[:, :len(features)]
+        y_test = test[:, len(features):]
 
-        validation_alphas = [0.15]
-        hidden = [8, 10, 15]
-        simple_net = RadialBasisFunction(number_of_neurons=8, N_Classes=2, alpha=0.15, case='classification')
+        validation_alphas = [1.0, 1.15, 1.5, 2.0]
+        hidden = [3, 5, 8, 10]
+        simple_net = RadialBasisFunction(number_of_neurons=8, N_Classes=3, alpha=1.15, case='classification')
         simple_net.fit(x_train, y_train, x_train_val=x_train_val, y_train_val=y_train_val, alphas=validation_alphas,
                        hidden=hidden)
 
         y_out = simple_net.predict(x_test, bias=True)
         y_test = simple_net.predicao(y_test)
+
 
         metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
         metric_results = metrics_calculator.calculate(average='macro')
@@ -104,7 +118,6 @@ if __name__ == '__main__':
                               simple_net.number_of_neurons
                               ))
 
-
         results['alphas'].append(simple_net.alpha)
         results['realization'].append(realization)
         for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
@@ -115,69 +128,29 @@ if __name__ == '__main__':
     best_alpha = results['cf'][0][2]
     best_number_centers = results['cf'][0][3]
 
-
     final_result['alphas'].append(mean(results['alphas']))
     for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
         final_result[type].append(mean(results[type]))
         final_result['std ' + type].append(std(results[type]))
 
-    # ------------------------ PLOT -------------------------------------------------
 
+
+    # ------------------------ PLOT -------------------------------------------------
+    #
     for i in range(len(final_result['best_cf'])):
         plt.figure(figsize=(10, 7))
 
-        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "01"],
-                          columns=[i for i in "01"])
+        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in range(C)],
+                             columns=[i for i in range(C)])
         sn.heatmap(df_cm, annot=True)
-        plt.title(
-            'Matriz de connfusão XOR com raio de abertura: ' + str(
-                best_alpha) + ' e número de neurônios: ' + str(best_number_centers))
+        plt.title('Matriz de connfusão cancer com alpha: ' + str(best_alpha) + ' e numero de neuronio: ' + str(best_number_centers))
         plt.xlabel('Valor Esperado')
         plt.ylabel('Valor Encontrado')
 
-        path = get_project_root() + '/run/TR-06/XOR/results/'
+        path = get_project_root() + '/run/TR-06/CANCER/results/'
         plt.savefig(path + "mat_confsuison_rbf.jpg")
         plt.show()
 
-    xx, yy = generate_space(x)
-    space = c_[xx.ravel(), yy.ravel()]
-
-    point = {
-        0: 'bo',
-        1: 'go'
-    }
-    marker = {
-        0: '^',
-        1: 'o'
-    }
-
-    # O clasificador da vigesima realização
-    plot_dict = {
-        'xx': xx,
-        'yy': yy,
-        'Z': simple_net.predict(space, bias=True),
-        'classes': {}
-    }
-
-    # utilizando o x_test e o y_test da ultima realização
-    for c in [0, 1]:
-        plot_dict['classes'].update({
-            c: {
-                'X': x[where(y == c)[0]],
-                'point': point[c],
-                'marker': marker[c]
-            }
-        })
-
-    # #FFAAAA red
-    # #AAAAFF blue
-    coloring(plot_dict, ListedColormap(['#87CEFA', '#228B22']), xlabel='x1', ylabel='x2',
-             title='mapa de cores com RBF', xlim=[-0.1, 1.1], ylim=[-0.1, 1.1],
-             path=get_project_root() + '/run/TR-06/XOR/results/' + 'color_map_xor_rbf_net.jpg',
-             save=True)
-    # print('dataset shape %s' % Counter(base[:, 2]))
-
     print(pd.DataFrame(final_result))
     # del final_result['best_cf']
-    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-06/XOR/results/' + 'result_rbf.csv')
-
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-06/CANCER/results/' + 'result_rbf.csv')

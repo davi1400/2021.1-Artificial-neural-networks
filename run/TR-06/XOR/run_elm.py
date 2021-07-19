@@ -16,9 +16,8 @@ from numpy import where, append, ones, array, zeros, mean, argmax, linspace, con
 from mlfwk.metrics import metric
 from mlfwk.readWrite import load_mock
 from mlfwk.utils import split_random, get_project_root, normalization, out_of_c_to_label
-from mlfwk.models import kmeans
+from mlfwk.models import ExtremeLearningMachines
 from mlfwk.visualization import generate_space, coloring
-
 
 if __name__ == '__main__':
     print("run artificial XOR")
@@ -33,8 +32,7 @@ if __name__ == '__main__':
         'std precision': [],
         'recall': [],
         'std recall': [],
-        'best_cf': [],
-        'alphas': []
+        'best_cf': []
     }
 
     results = {
@@ -44,8 +42,7 @@ if __name__ == '__main__':
         'f1_score': [],
         'precision': [],
         'recall': [],
-        'cf': [],
-        'alphas': []
+        'cf': []
     }
 
     base = pd.DataFrame(load_mock(type='LOGICAL_XOR'), columns=['x1', 'x2', 'y'])
@@ -69,58 +66,93 @@ if __name__ == '__main__':
     C = len(base['y'].unique())
 
     y_out_of_c = pd.get_dummies(base['y'])
-    base = base.to_numpy()
+    base = concatenate([base[['x1', 'x2']], y_out_of_c], axis=1)
 
     # --------------------------------------------------------------------------------------
 
     for realization in range(1):
         train, test = split_random(base, train_percentage=.8)
+        train, train_val = split_random(train, train_percentage=.8)
 
         x_train = train[:, :2]
         y_train = train[:, 2:]
 
+        x_train_val = train_val[:, :2]
+        y_train_val = train_val[:, 2:]
+
         x_test = test[:, :2]
         y_test = test[:, 2:]
 
-        clf = kmeans(k=4, epsilon=1e-4, max_iter=1000)
-        clf.fit(x_train, y_train, validation=False)
+        number_of_neourons = [8, 10]
+        simple_net = ExtremeLearningMachines(number_of_neurons=8, N_Classes=2, case='classification')
+        simple_net.fit(x_train, y_train, x_train_val=x_train_val, y_train_val=y_train_val,
+                       hidden=number_of_neourons, validation=False)
 
-        y_out = clf.predict(x_test)
+        y_out = simple_net.predict(x_test, bias=True)
+
+        y_test = simple_net.predicao(y_test)
+
+        metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
+        metric_results = metrics_calculator.calculate(average='macro')
+        print(metric_results)
+
+        results['cf'].append((metric_results['ACCURACY'],
+                              metrics_calculator.confusion_matrix(list(y_test), y_out, labels=list(range(C))),
+                              simple_net.number_of_neurons
+                              ))
+
+        results['realization'].append(realization)
+        for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
+            results[type].append(metric_results[type])
+
+    results['cf'].sort(key=lambda x: x[0], reverse=True)
+    final_result['best_cf'].append(results['cf'][0][1])
+    best_number_neurons = results['cf'][0][2]
 
 
-        # metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
-        # metric_results = metrics_calculator.calculate(average='macro')
-        # print(metric_results)
-
-
+    for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
+        final_result[type].append(mean(results[type]))
+        final_result['std ' + type].append(std(results[type]))
 
     # ------------------------ PLOT -------------------------------------------------
+
+    for i in range(len(final_result['best_cf'])):
+        plt.figure(figsize=(10, 7))
+
+        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "01"],
+                          columns=[i for i in "01"])
+        sn.heatmap(df_cm, annot=True)
+        plt.title(
+            'Matriz de connfusão XOR com número de neurônios: ' + str(best_number_neurons))
+        plt.xlabel('Valor Esperado')
+        plt.ylabel('Valor Encontrado')
+
+        path = get_project_root() + '/run/TR-06/XOR/results/'
+        plt.savefig(path + "mat_confsuison_elm.jpg")
+        plt.show()
+
     xx, yy = generate_space(x)
     space = c_[xx.ravel(), yy.ravel()]
 
     point = {
         0: 'bo',
-        1: 'go',
-        2: 'ko',
-        3: 'ro',
+        1: 'go'
     }
     marker = {
         0: '^',
-        1: 'o',
-        2: '*',
-        3: '1'
+        1: 'o'
     }
 
     # O clasificador da vigesima realização
     plot_dict = {
         'xx': xx,
         'yy': yy,
-        'Z': clf.predict(space),
+        'Z': simple_net.predict(space, bias=True),
         'classes': {}
     }
 
     # utilizando o x_test e o y_test da ultima realização
-    for c in [0, 1, 2, 3]:
+    for c in [0, 1]:
         plot_dict['classes'].update({
             c: {
                 'X': x[where(y == c)[0]],
@@ -131,13 +163,13 @@ if __name__ == '__main__':
 
     # #FFAAAA red
     # #AAAAFF blue
-    coloring(plot_dict, ListedColormap(['#87CEFA', '#228B22', '#EAADEA', '#FF0000']), xlabel='x1', ylabel='x2',
-             title='mapa de cores com mlp', xlim=[-0.1, 1.1], ylim=[-0.1, 1.1],
-             path=get_project_root() + '/run/TR-05/XOR/results/' + 'color_map_xor_mlp_net.jpg',
+    coloring(plot_dict, ListedColormap(['#87CEFA', '#228B22']), xlabel='x1', ylabel='x2',
+             title='mapa de cores com ELM', xlim=[-0.1, 1.1], ylim=[-0.1, 1.1],
+             path=get_project_root() + '/run/TR-06/XOR/results/' + 'color_map_xor_elm_net.jpg',
              save=True)
     # print('dataset shape %s' % Counter(base[:, 2]))
 
-    # print(pd.DataFrame(final_result))
-    # # del final_result['best_cf']
-    # pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-05/XOR/results/' + 'result_mlp_net.csv')
-    #
+    print(pd.DataFrame(final_result))
+    # del final_result['best_cf']
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-06/XOR/results/' + 'result_elm_net.csv')
+
