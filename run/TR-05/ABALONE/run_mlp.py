@@ -28,6 +28,8 @@ if __name__ == '__main__':
         'std MSE': [],
         'RMSE': [],
         'std RMSE': [],
+        'R2': [],
+        'std R2': [],
         'alphas': [],
         'best_error_per_epoch': []
     }
@@ -36,6 +38,7 @@ if __name__ == '__main__':
         'realization': [],
         'MSE': [],
         'RMSE': [],
+        'R2': [],
         'alphas': [],
         'error_per_epoch': []
     }
@@ -68,22 +71,17 @@ if __name__ == '__main__':
     N, M = df.shape
     C = 1  # Problema de regressão
     epochs = 10000
-    for realization in range(1):
+    for realization in range(20):
         train, test = split_random(df, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=.8)
 
         x_train = train[features]
-
         y_train = train[target].to_numpy().reshape(train[target].shape[0], 1)
-        # y_train.to_numpy().reshape(y_train.shape[0], 1)
 
         x_train_val = train_val[features]
-
         y_train_val = train_val[target]
-        # y_train_val.to_numpy().reshape(y_train_val.shape[0], 1)
 
         x_test = test[features]
-
         y_test = test[target]
         y_test.to_numpy().reshape(y_test.shape[0], 1)
 
@@ -99,21 +97,21 @@ if __name__ == '__main__':
 
         y_out = simple_net.predict(x_test, bias=True)
 
-        metrics_calculator = metric(y_test, y_out, types=['MSE', 'RMSE'])
+        metrics_calculator = metric(y_test, y_out, types=['MSE', 'RMSE', 'R2'])
         metric_results = metrics_calculator.calculate()
         print(metric_results)
 
         results['error_per_epoch'].append((simple_net.train_epochs_error, metric_results['RMSE']))
         results['alphas'].append(simple_net.lr)
         results['realization'].append(realization)
-        for type in ['MSE', 'RMSE']:
+        for type in ['MSE', 'RMSE', 'R2']:
             results[type].append(metric_results[type])
 
     results['error_per_epoch'].sort(key=lambda x: x[1], reverse=False)
     final_result['best_error_per_epoch'] = results['error_per_epoch'][0][0]
 
     final_result['alphas'].append(mean(results['alphas']))
-    for type in ['MSE', 'RMSE']:
+    for type in ['MSE', 'RMSE', 'R2']:
         final_result[type].append(mean(results[type]))
         final_result['std ' + type].append(std(results[type]))
 
@@ -124,8 +122,10 @@ if __name__ == '__main__':
     path = get_project_root() + '/run/TR-05/ABALONE/results/'
     plt.savefig(path + "error_epochs.jpg")
     plt.show()
-    # pd.DataFrame(final_result).to_csv(
-    #    get_project_root() + '/run/TR-05/ABALONE/results/' + 'result_simple_net.csv')
+
+    del final_result['best_error_per_epoch']
+    print(pd.DataFrame(final_result))
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-05/ABALONE/results/' + 'result_simple_net.csv')
 
 
     # ------------------------------------------------------------------------------------

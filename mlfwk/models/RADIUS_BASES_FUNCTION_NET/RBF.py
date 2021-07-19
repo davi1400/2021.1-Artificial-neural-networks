@@ -1,10 +1,16 @@
+
+import numpy as np
+import pandas as pd
+from numpy.random import rand, permutation
+from mlfwk.metrics import metric
+from scipy.special import expit
 from mlfwk.metrics.metrics import accuracy_score
 from mlfwk.models.KMEANS.kmeans import kmeans
+from numpy import where, append, ones, array, zeros, mean, argmax, linspace, concatenate, c_, argmin
 
 
 class RadialBasisFunction:
-    def __init__(self, epochs=1000, number_of_neurons=2, learning_rate=.01, activation_function='sigmoid logistic',
-                 case='max'):
+    def __init__(self, number_of_neurons=2, alpha=.1, N_Classes=None, case=None):
         """
 
             Performs a neural network with jsut one layer(one layer of neurons + input layer), using in default sigmoid
@@ -12,16 +18,21 @@ class RadialBasisFunction:
 
         @param epochs: Number of train epochs
         @param number_of_neurons: number of neurons in output layer
-        @param learning_rate: lambda
+        @param alpha: lambda
+        @param N_Classes:
         @param activation_function: the type of activate funtion in each neuron
         @param max:
         """
 
-        self.epochs = epochs
         self.number_of_neurons = number_of_neurons
-        self.learning_rate = learning_rate
-        self.activation_function = activation_function
+        self.alpha = alpha
+        self.N_Classes = N_Classes
+        self.wheigths = None
         self.case = case
+        self.types = {
+            'classification': 'ACCURACY',
+            'regression': 'MSE'
+        }
 
     def add_bias(self, x):
         """
@@ -32,8 +43,13 @@ class RadialBasisFunction:
         """
         return concatenate([ones((x.shape[0], 1)), x], axis=1)
 
-    def find_centroides(self, x, y):
+    def Sigmoid(self, h):
+        return expit(h)
+
+    def find_centroides(self, x, y, bias=True):
         # using k - mean to find the centroids
+        if bias:
+            x = self.add_bias(x)
         clf_kmeans = kmeans(k=self.number_of_neurons)
         clf_kmeans.fit(x, y, validation=False)
 
@@ -59,7 +75,8 @@ class RadialBasisFunction:
         if validation:
             self.k_fold_cross_validate(x_train_val, y_train_val, alphas=alphas, hidden=hidden, bias=True)
 
-        self.cetroids = self.find_centroides(x_train_val, y_train_val)
+
+        self.cetroids = self.find_centroides(x_train_val, y_train_val, bias=True)
 
         if batch:
             # TODO
@@ -104,13 +121,10 @@ class RadialBasisFunction:
 
                     N, M = x_train_val.shape
 
-                    classifier = RadialBasisFunction(M, self.N_Classes,
-                                                      hidden_layer_neurons=hidden_layer,
-                                                      learning_rate=alpha,
-                                                      epochs=500,
-                                                      Regressao=self.key)
+                    classifier = RadialBasisFunction(number_of_neurons=hidden_layer,
+                                                     alpha=alpha, N_Classes=3)
 
-                    classifier.fit(x_train_val, y_train_val, validation=False, bias=False)
+                    classifier.fit(x_train_val, y_train_val, x_train_val=x_train_val, y_train_val=y_train_val, validation=False)
                     y_out_val = classifier.predict(x_test_val)
 
                     if self.case == 'classification':
@@ -132,25 +146,33 @@ class RadialBasisFunction:
             hidden_indice, alpha_indice = np.unravel_index(np.argmin(validation_metrics, axis=None),
                                                            validation_metrics.shape)
 
-        self.learning_rate = alphas[alpha_indice]
-        self.N_Neruronios = hidden[hidden_indice]
+        self.alpha = alphas[alpha_indice]
+        self.number_of_neurons = hidden[hidden_indice]
 
-    def predict(self, x, test=True):
+
+    def predicao(self, Y):
+        y = np.zeros((Y.shape[0], 1))
+        for j in range(Y.shape[0]):
+            i = np.argmax(Y[j])
+            y[j] = i
+        return y
+
+    def predict(self, x, bias=True):
         """
 
-        @param test: if true add bias
+        @param bias: if true add bias
         @param x: features test set
         @return: predicted values
         """
 
-        if test:
-            x = self.add_bias(X)
+        if bias:
+            x = self.add_bias(x)
 
-        H = self.H(x)
+        H = self.foward(x)
         if self.N_Classes > 1:
-            return self.greater_prob(self.Sigmoid(H.dot(self.Pesos)))
+            return self.greater_prob(self.Sigmoid(H.dot(self.wheigths)))
         else:
-            return H.dot(self.Pesos)
+            return H.dot(self.wheigths)
 
     def greater_prob(self, Y):
         """
@@ -171,16 +193,16 @@ class RadialBasisFunction:
         @param x:
         @return:
         """
-        hidden = np.zeros((self.N_centros, x.shape[0]))
-        for j in range(self.N_centros):
-            dist = np.linalg.norm(x - self.Centroides[j], axis=1).T
+        hidden = np.zeros((self.number_of_neurons, x.shape[0]))
+        for j in range(self.number_of_neurons):
+            dist = np.linalg.norm(x - self.cetroids[j], axis=1).T
             hidden[j] = np.exp(-(dist ** 2) / (2.0 * (self.alpha ** 2)))
 
         hidden = hidden.T
         hidden = self.add_bias(hidden)
         return hidden
 
-    def backward(self, error, x, y):
+    def _wheigths_adjust(self, H_train, Y):
         """
         Adjust the wheights
 
@@ -189,7 +211,8 @@ class RadialBasisFunction:
         @param y:
         @return:
         """
-
+        eye = 0.05 * np.eye(H_train.shape[1])
+        self.wheigths = (((np.linalg.inv((H_train.T.dot(H_train)) + eye)).dot(H_train.T)).dot(Y))
 
     def online_train(self, x, y):
 
@@ -200,26 +223,9 @@ class RadialBasisFunction:
         @param y:
         @return:
         """
-        k = 0
-        N, M = x.shape
-        r = permutation(N)
 
-        self.errors_per_epoch = []
-        for epoch in range(self.epochs):
-            h_output = self.foward(x[r[k]])
+        H_train = self.foward(x)
+        self._wheigths_adjust(H_train, y)
 
 
-            neurons_error = self.calculate_error(array(y[r[k]], ndmin=2).T, y_predict)
-            # error = array(y[r[k]], ndmin=2).T - y_output
-
-            self.backward(neurons_error, x[r[k]], y_output)
-            k += 1
-
-            if k >= r.shape[0]:
-                """
-                    Verificar se já passou por todos os exemplos se sim, 
-                    fazer novamente randperm() e colocar o contador no 0
-                """
-                r = permutation(x.shape[0])
-                k = 0
 

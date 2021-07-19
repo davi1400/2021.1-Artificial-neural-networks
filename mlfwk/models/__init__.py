@@ -9,3 +9,4 @@ from .SIMPLE_PERCEPTRON_NET.sigmoid_perceptron_net import sigmoid_perceptron_net
 from .SIMPLE_PERCEPTRON_NET.hyperbolic_perceptron_net import hyperbolic_perceptron_network
 from .MULTILAYER_PERCEPTRON_NET.mlp import MultiLayerPerceptron
 from .RADIUS_BASES_FUNCTION_NET.RBF import RadialBasisFunction
+from .EXTREME_LEARNING_MACHINE.ELM import ExtremeLearningMachines

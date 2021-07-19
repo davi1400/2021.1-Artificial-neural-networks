@@ -28,6 +28,8 @@ if __name__ == '__main__':
         'std MSE': [],
         'RMSE': [],
         'std RMSE': [],
+        'R2': [],
+        'std R2': [],
         'alphas': [],
         'best_error_per_epoch': []
     }
@@ -36,6 +38,7 @@ if __name__ == '__main__':
         'realization': [],
         'MSE': [],
         'RMSE': [],
+        'R2': [],
         'alphas': [],
         'error_per_epoch': []
     }
@@ -87,8 +90,8 @@ if __name__ == '__main__':
     N, M = new_df.shape
     C = 1  # Problema de regressão
 
-    epochs = 100
-    for realization in range(1):
+    epochs = 1000
+    for realization in range(20):
         train, test = split_random(new_df, train_percentage=.8)
         train, train_val = split_random(train, train_percentage=.8)
 
@@ -111,7 +114,7 @@ if __name__ == '__main__':
 
         y_out = simple_net.predict(x_test, bias=True)
 
-        metrics_calculator = metric(y_test, y_out, types=['MSE', 'RMSE'])
+        metrics_calculator = metric(y_test, y_out, types=['MSE', 'RMSE', 'R2'])
         metric_results = metrics_calculator.calculate()
         print(metric_results)
         print(simple_net.N_Neruronios)
@@ -119,20 +122,16 @@ if __name__ == '__main__':
         results['error_per_epoch'].append((simple_net.train_epochs_error, metric_results['RMSE']))
         results['alphas'].append(simple_net.lr)
         results['realization'].append(realization)
-        for type in ['MSE', 'RMSE']:
+        for type in ['MSE', 'RMSE', 'R2']:
             results[type].append(metric_results[type])
 
     results['error_per_epoch'].sort(key=lambda x: x[1], reverse=False)
     final_result['best_error_per_epoch'] = results['error_per_epoch'][0][0]
 
     final_result['alphas'].append(mean(results['alphas']))
-    for type in ['MSE', 'RMSE']:
+    for type in ['MSE', 'RMSE', 'R2']:
         final_result[type].append(mean(results[type]))
         final_result['std ' + type].append(std(results[type]))
-
-    # print(pd.DataFrame(final_result))
-    # pd.DataFrame(final_result).to_csv(
-    #     get_project_root() + '/run/TR-05/CAR_FUEL/results/' + 'result_mlp.csv')
 
     plt.plot(list(range(epochs)), final_result['best_error_per_epoch'], '*')
     plt.xlabel('epochs')
@@ -140,5 +139,12 @@ if __name__ == '__main__':
     path = get_project_root() + '/run/TR-05/CAR_FUEL/results/'
     plt.savefig(path + "error_epochs_car.jpg")
     plt.show()
+
+    del final_result['best_error_per_epoch']
+    print(pd.DataFrame(final_result))
+    pd.DataFrame(final_result).to_csv(
+        get_project_root() + '/run/TR-05/CAR_FUEL/results/' + 'result_mlp.csv')
+
+
 
     #  ------------------------ PLOT -------------------------------------------------=

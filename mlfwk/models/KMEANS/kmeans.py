@@ -55,7 +55,6 @@ class kmeans:
 
         self.centroids = x[indices[:self.k]]
         self.__before_centroids = None
-        print(self.__before_centroids)
 
 
     def predict(self, x):
@@ -99,7 +98,6 @@ class kmeans:
 
             d = 0
             for i in range(self.k):
-                print(self.__before_centroids[i])
                 d += calculate_euclidian_distance(self.centroids[i].T, self.__before_centroids[i])
 
             aux = (1/self.k)*d
