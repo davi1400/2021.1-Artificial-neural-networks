@@ -15,6 +15,7 @@ def load_base(path='', column_names=None, type=None):
     if type == 'csv':
         base_result = read_csv(path, names=column_names)
         return base_result
+
     if type == 'arff':
         base_result = arff.loadarff(path)
         base_result = DataFrame(base_result[0])
