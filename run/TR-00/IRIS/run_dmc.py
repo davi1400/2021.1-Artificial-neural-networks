@@ -1,9 +1,12 @@
 import sys
+import warnings
+warnings.filterwarnings("ignore")
 from pathlib import Path
 print(str(Path(__file__).parent.parent.parent.parent))
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 
-
+import seaborn as sn
+import matplotlib.pyplot as plt
 from numpy import where, array, mean, std
 from pandas.core.frame import DataFrame
 from mlfwk.readWrite import load_base
@@ -18,16 +21,13 @@ if __name__ == '__main__':
         'versus': [],
         'ACCURACY': [],
         'std ACCURACY': [],
-        'AUC': [],
-        'std AUC': [],
-        'MCC': [],
-        'std MCC': [],
         'f1_score': [],
         'std f1_score': [],
         'precision': [],
         'std precision': [],
         'recall': [],
-        'std recall': []
+        'std recall': [],
+        'best_cf': []
     }
 
     for one_versus_others in versus:
@@ -72,12 +72,13 @@ if __name__ == '__main__':
             'versus': [],
             'realization': [],
             'ACCURACY': [],
-            'AUC': [],
-            'MCC': [],
             'f1_score': [],
             'precision': [],
-            'recall': []
+            'recall': [],
+            'cf': []
         }
+        C = len(iris_base['Species'].unique())
+
         for realization in range(20):
             train, test = split_random(iris_base)
 
@@ -90,20 +91,41 @@ if __name__ == '__main__':
             classifier_dmc = dmc(x_train.to_numpy(), y_train.to_numpy())
             y_out_dmc = classifier_dmc.predict(x_test.to_numpy(), [0, 1])
 
-            metrics_calculator = metric(list(y_test), y_out_dmc, types=['ACCURACY', 'AUC', 'precision',
-                                                                  'recall', 'f1_score', 'MCC'])
-            metric_results = metrics_calculator.calculate()
+            metrics_calculator = metric(list(y_test), y_out_dmc, types=['ACCURACY', 'precision',
+                                                                  'recall', 'f1_score'])
+            metric_results = metrics_calculator.calculate(average='macro')
+
+            results['cf'].append((metric_results['ACCURACY'],
+                                  metrics_calculator.confusion_matrix(list(y_test), y_out_dmc, labels=range(C)),
+                                  classifier_dmc
+                                  ))
 
             results['realization'].append(realization)
-            for type in ['ACCURACY', 'AUC', 'precision', 'recall', 'f1_score', 'MCC']:
+            for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
                 results[type].append(metric_results[type])
 
 
         final_result['versus'].append(one_versus_others)
-
-        for type in ['ACCURACY', 'AUC', 'precision', 'recall', 'f1_score', 'MCC']:
+        for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
             final_result[type].append(mean(results[type]))
             final_result['std ' + type].append(std(results[type]))
+
+        results['cf'].sort(key=lambda x: x[0], reverse=True)
+        final_result['best_cf'].append(results['cf'][0][1])
+        best_acc_clf = results['cf'][0][2]
+        best_acc = results['cf'][0][0]
+
+
+        df_cm = DataFrame(results['cf'][0][1], index=[i for i in range(C)],
+                              columns=[i for i in range(C)])
+        sn.heatmap(df_cm, annot=True)
+        plt.title('Matriz de connfusão do DMC com acurácia de ' + str(round(best_acc, 2) * 100) + "%")
+        plt.xlabel('Valor Esperado')
+        plt.ylabel('Valor Encontrado')
+
+        path = get_project_root() + '/run/TR-00/IRIS/results/'
+        plt.savefig(path + one_versus_others + "-conf_result_dmc.jpg")
+        plt.show()
 
     DataFrame(final_result).to_csv(get_project_root() + '/run/TR-00/IRIS/results/' + 'result_dmc.csv')
     print(DataFrame(final_result))

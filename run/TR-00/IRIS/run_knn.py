@@ -1,12 +1,13 @@
 import sys
+import warnings
+warnings.filterwarnings("ignore")
 from pathlib import Path
 print(str(Path(__file__).parent.parent.parent.parent))
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 
-
+import matplotlib.pyplot as plt
 from numpy import where, array, mean, std
 from pandas.core.frame import DataFrame
-import matplotlib.pyplot as plt
 import seaborn as sns
 from mlfwk.readWrite import load_base
 from mlfwk.utils import split_random, normalization, get_project_root
@@ -21,16 +22,13 @@ if __name__ == '__main__':
         'K': [],
         'ACCURACY': [],
         'std ACCURACY': [],
-        'AUC': [],
-        'std AUC': [],
-        'MCC': [],
-        'std MCC': [],
         'f1_score': [],
         'std f1_score': [],
         'precision': [],
         'std precision': [],
         'recall': [],
-        'std recall': []
+        'std recall': [],
+        'best_cf': []
     }
 
 
@@ -77,12 +75,13 @@ if __name__ == '__main__':
             'versus': [],
             'realization': [],
             'ACCURACY': [],
-            'AUC': [],
-            'MCC': [],
             'f1_score': [],
             'precision': [],
-            'recall': []
+            'recall': [],
+            'cf': []
         }
+        C = len(iris_base['Species'].unique())
+
         for realization in range(20):
             train, test = split_random(iris_base)
 
@@ -95,21 +94,41 @@ if __name__ == '__main__':
             classifier_knn = knn(x_train.to_numpy(), y_train.to_numpy(), k=3, class_column_name='Species')
             y_out_knn = classifier_knn.predict(x_test.to_numpy())
 
-            metrics_calculator = metric(list(y_test), y_out_knn, types=['ACCURACY', 'AUC', 'precision',
-                                                                  'recall', 'f1_score', 'MCC'])
-            metric_results = metrics_calculator.calculate()
+            metrics_calculator = metric(list(y_test), y_out_knn, types=['ACCURACY', 'precision',
+                                                                  'recall', 'f1_score'])
+            metric_results = metrics_calculator.calculate(average='micro')
+
+            results['cf'].append((metric_results['ACCURACY'],
+                                  metrics_calculator.confusion_matrix(list(y_test), y_out_knn, labels=range(C)),
+                                  classifier_knn
+                                  ))
 
             results['realization'].append(realization)
-            for type in ['ACCURACY', 'AUC', 'precision', 'recall', 'f1_score', 'MCC']:
+            for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
                 results[type].append(metric_results[type])
-
 
         final_result['versus'].append(one_versus_others)
         final_result['K'].append(3)
 
-        for type in ['ACCURACY', 'AUC', 'precision', 'recall', 'f1_score', 'MCC']:
+        for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
             final_result[type].append(mean(results[type]))
             final_result['std ' + type].append(std(results[type]))
+
+        results['cf'].sort(key=lambda x: x[0], reverse=True)
+        final_result['best_cf'].append(results['cf'][0][1])
+        best_acc_clf = results['cf'][0][2]
+        best_acc = results['cf'][0][0]
+
+        df_cm = DataFrame(results['cf'][0][1], index=[i for i in range(C)],
+                          columns=[i for i in range(C)])
+        sns.heatmap(df_cm, annot=True)
+        plt.title('Matriz de connfusão do KNN com acurácia de ' + str(round(best_acc, 2) * 100) + "%")
+        plt.xlabel('Valor Esperado')
+        plt.ylabel('Valor Encontrado')
+
+        path = get_project_root() + '/run/TR-00/IRIS/results/'
+        plt.savefig(path + one_versus_others + "-conf_result_knn.jpg")
+        plt.show()
 
     DataFrame(final_result).to_csv(get_project_root() + '/run/TR-00/IRIS/results/' + 'result_knn.csv')
     print(DataFrame(final_result))

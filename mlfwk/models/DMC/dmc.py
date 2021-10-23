@@ -23,10 +23,8 @@ class dmc:
             self.centroids_per_class.update({
                 c: calculate_centroid(self.x_train[indices])
             })
-        print(self.centroids_per_class)
         
     def predict(self, x_test, classes):
-        self.running.__doc__
         self.find_centroids(classes)
 
         y_output = []
