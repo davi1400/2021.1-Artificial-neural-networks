@@ -86,7 +86,15 @@ class generic_neuron:
         @param y:
         @return:
         """
-        # this case is just for one neuron
+        call_cases = {
+            'threshold': self.threshold_per_limit_value
+        }
+
+        return call_cases[self.case](y)
+
+
+    def threshold_per_limit_value(self, y):
+        # One neuron in output layer case, just see if the value is bigger that an limit
         for i in range(y.shape[0]):
             if y[i] > self.threshold_value:
                 y[i] = int(1)

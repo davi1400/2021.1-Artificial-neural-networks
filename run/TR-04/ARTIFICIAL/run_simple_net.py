@@ -16,7 +16,7 @@ from numpy import where, append, ones, array, zeros, mean, argmax, linspace, con
 from mlfwk.metrics import metric
 from mlfwk.readWrite import load_mock
 from mlfwk.utils import split_random, get_project_root, normalization, out_of_c_to_label
-from mlfwk.models import simple_perceptron_network
+from mlfwk.models import sigmoid_perceptron_network
 from mlfwk.visualization import generate_space, coloring
 
 if __name__ == '__main__':
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         y_test = test[:, 2:]
 
         validation_alphas = linspace(0.015, 0.1, 20)
-        simple_net = simple_perceptron_network(epochs=10000, number_of_neurons=3, learning_rate=0.1, activation_function='degree')
+        simple_net = sigmoid_perceptron_network(epochs=10000, number_of_neurons=3, learning_rate=0.1)
         simple_net.fit(x_train, y_train, x_train_val, y_train_val, alphas=validation_alphas)
 
         y_out_simple_net = simple_net.predict(x_test)
@@ -121,11 +121,12 @@ if __name__ == '__main__':
                              columns=[i for i in "012"])
         sn.heatmap(df_cm, annot=True)
 
-        path = get_project_root() + '/run/TR-03/ARTIFICIAL/results/'
+        path = get_project_root() + '/run/TR-04/ARTIFICIAL/results/'
         plt.savefig(path + "mat_confsuison_triangle.jpg")
         plt.show()
 
 
+    # ------------------------------------ All points ------------------------------------------------------------------
 
     xx, yy = generate_space(x)
     space = c_[xx.ravel(), yy.ravel()]
@@ -162,10 +163,10 @@ if __name__ == '__main__':
     # #FFAAAA red
     # #AAAAFF blue
     coloring(plot_dict, ListedColormap(['#87CEFA', '#228B22', "#FF00FF"]), xlabel='x1', ylabel='x2',
-             title='mapa de cores com Rede Perceptron', xlim=[-0.1, 1.1], ylim=[-0.1, 1.1],
-             path=get_project_root() + '/run/TR-03/ARTIFICIAL/results/' + 'color_map_triangle_simple_net.jpg', save=True)
+             title='mapa de cores com Rede Perceptron ', xlim=[-0.1, 1.1], ylim=[-0.1, 1.1],
+             path=get_project_root() + '/run/TR-04/ARTIFICIAL/results/' + 'color_map_triangle_simple_net.jpg', save=True)
     # print('dataset shape %s' % Counter(base[:, 2]))
 
     print(pd.DataFrame(final_result))
     # del final_result['best_cf']
-    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-03/ARTIFICIAL/results/' + 'result_simple_net.csv')
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-04/ARTIFICIAL/results/' + 'result_simple_net.csv')

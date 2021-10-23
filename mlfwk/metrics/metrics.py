@@ -46,11 +46,14 @@ class metric:
         except Exception:
             print("error")
 
-    def mse(self, y_true, y_pred, average):
+    def mse(self, y_true, y_pred, average=None):
         return mean_squared_error(y_true, y_pred)
 
-    def rmse(self, y_true, y_pred, average):
+    def rmse(self, y_true, y_pred, average=None):
         return sqrt(self.mse(y_true, y_pred))
+
+    def r_two(self, y_true, y_pred, average=None):
+        return r2_score(y_true, y_pred)
 
     def one_by_one(self, type, y_true, y_pred, average='binary'):
 
@@ -63,7 +66,8 @@ class metric:
             'f1_score': self.f1,
             'MCC': matthews_corrcoef,
             'MSE': self.mse,
-            'RMSE': self.rmse
+            'RMSE': self.rmse,
+            'R2': self.r_two
         }
 
         return func_possibles[type](y_true, y_pred, average)

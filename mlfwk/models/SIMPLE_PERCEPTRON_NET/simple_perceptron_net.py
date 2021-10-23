@@ -145,6 +145,8 @@ class simple_perceptron_network:
 
     def backward(self, error, x):
 
+
+
         for neuron_key in self.network.keys():
             adjust = learning_rule_perceptron(1, error[neuron_key], array(x, ndmin=2), self.learning_rate)
             self.network[neuron_key].backward(adjust)

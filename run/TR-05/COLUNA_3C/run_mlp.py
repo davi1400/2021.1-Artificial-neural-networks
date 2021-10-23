@@ -44,7 +44,7 @@ if __name__ == '__main__':
         'std precision': [],
         'recall': [],
         'std recall': [],
-        # 'best_cf': [],
+        'best_cf': [],
         'alphas': []
     }
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         'f1_score': [],
         'precision': [],
         'recall': [],
-        # 'cf': [],
+        'cf': [],
         'alphas': []
     }
 
@@ -114,10 +114,16 @@ if __name__ == '__main__':
         metric_results = metrics_calculator.calculate(average='macro')
         print(metric_results)
 
+        results['cf'].append((metric_results['ACCURACY'],
+                              metrics_calculator.confusion_matrix(list(y_test), y_out, labels=list(range(C)))))
+
         results['alphas'].append(simple_net.learning_rate)
         results['realization'].append(realization)
         for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
             results[type].append(metric_results[type])
+
+    results['cf'].sort(key=lambda x: x[0], reverse=True)
+    final_result['best_cf'].append(results['cf'][0][1])
 
     final_result['alphas'].append(mean(results['alphas']))
     for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
@@ -127,17 +133,17 @@ if __name__ == '__main__':
 
     # ------------------------ PLOT -------------------------------------------------
 
-    # for i in range(len(final_result['best_cf'])):
-    #     plt.figure(figsize=(10, 7))
-    #
-    #     df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in "012"],
-    #                          columns=[i for i in "012"])
-    #     sn.heatmap(df_cm, annot=True)
-    #
-    #     path = get_project_root() + '/run/TR-03/ARTIFICIAL/results/'
-    #     plt.savefig(path + "mat_confsuison_triangle.jpg")
-    #     plt.show()
+    for i in range(len(final_result['best_cf'])):
+        plt.figure(figsize=(10, 7))
+
+        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in range(C)],
+                             columns=[i for i in range(C)])
+        sn.heatmap(df_cm, annot=True)
+
+        path = get_project_root() + '/run/TR-05/COLUNA_3C/results/'
+        plt.savefig(path + "mat_confsuison.jpg")
+        plt.show()
 
     print(pd.DataFrame(final_result))
     # del final_result['best_cf']
-    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-05/COLUNA_3C/results/' + 'result_mlp_net.csv')
+    # pd.DataFrame(final_result).to_csv(get_project_root() + '/run/TR-05/COLUNA_3C/results/' + 'result_mlp_net.csv')

@@ -1,0 +1,19 @@
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/XOR/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/IRIS/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/DERMATOLOGIA/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/COLUNA_3C/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/COLUNA_2C/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/CAR_FUEL/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/CANCER/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/ARTIFICIAL_REGRESSAO/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/ABALONE/run_rbf.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/XOR/run_elm.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/IRIS/run_elm.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/DERMATOLOGIA/run_elm.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/COLUNA_3C/run_elm.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/COLUNA_2C/run_elm.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/CAR_FUEL/run_elm.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/CANCER/run_elm.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/ARTIFICIAL_REGRESSAO/run_elm.py
+python3 /home/davi/PycharmProjects/M-learn/run/TR-06/ABALONE/run_elm.py
+
