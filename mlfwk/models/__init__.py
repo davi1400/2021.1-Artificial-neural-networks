@@ -10,3 +10,4 @@ from .SIMPLE_PERCEPTRON_NET.hyperbolic_perceptron_net import hyperbolic_perceptr
 from .MULTILAYER_PERCEPTRON_NET.mlp import MultiLayerPerceptron
 from .RADIUS_BASES_FUNCTION_NET.RBF import RadialBasisFunction
 from .EXTREME_LEARNING_MACHINE.ELM import ExtremeLearningMachines
+from .BAYESIAN.gaussian_bayes import gaussianBayes
