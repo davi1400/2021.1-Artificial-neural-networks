@@ -18,7 +18,7 @@ from numpy import where, append, ones, array, zeros, mean, argmax, linspace, con
 from mlfwk.metrics import metric
 from mlfwk.readWrite import load_mock
 from mlfwk.utils import split_random, get_project_root, normalization, out_of_c_to_label
-from mlfwk.models import gaussianBayes
+from mlfwk.models import quadraticDiscriminant
 from mlfwk.readWrite import load_base
 from mlfwk.visualization import generate_space, coloring
 
@@ -69,9 +69,9 @@ if __name__ == '__main__':
     for realization in range(20):
         train, test = split_random(base, train_percentage=.8)
 
-        bayes_gaussian_clf = gaussianBayes(classes)
-        bayes_gaussian_clf.fit(train, features, 'class')
-        y_out = bayes_gaussian_clf.predict(test, features)
+        quadractic_clf = quadraticDiscriminant(classes, features, 'class')
+        quadractic_clf.fit(train)
+        y_out = quadractic_clf.predict(test)
 
 
         # decoding the types of outputs for calculate de the metrics
@@ -85,7 +85,8 @@ if __name__ == '__main__':
         print(metric_results)
 
         results['cf'].append(
-            (metric_results['ACCURACY'], metrics_calculator.confusion_matrix(y_test, y_out, labels=['Abnormal', 'Normal'])))
+            (metric_results['ACCURACY'], metrics_calculator.confusion_matrix(y_test, y_out,
+                                                                             labels=['Hernia', 'Spondylolisthesis', 'Normal'])))
 
         results['realization'].append(realization)
         for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
@@ -103,13 +104,13 @@ if __name__ == '__main__':
     for i in range(len(final_result['best_cf'])):
         plt.figure(figsize=(10, 7))
 
-        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in ['Abnormal', 'Normal']],
-                             columns=[i for i in ['Abnormal', 'Normal']])
+        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in ['Hernia', 'Spondylolisthesis', 'Normal']],
+                             columns=[i for i in ['Hernia', 'Spondylolisthesis', 'Normal']])
         sn.heatmap(df_cm, annot=True)
 
-        path = get_project_root() + '/run/ML-01/COLUNA_2C/results/'
-        plt.savefig(path + "mat_confsuison_triangle.jpg")
+        path = get_project_root() + '/run/ML-02/COLUNA_3C/results/'
+        plt.savefig(path + "mat_confsuison_triangle_QD.jpg")
         plt.show()
 
     print(pd.DataFrame(final_result))
-    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/ML-01/COLUNA_2C/results/' + 'result_bayes_gaussian.csv')
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/ML-02/COLUNA_3C/results/' + 'result_QD.csv')

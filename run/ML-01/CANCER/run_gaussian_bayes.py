@@ -22,9 +22,8 @@ from mlfwk.models import gaussianBayes
 from mlfwk.readWrite import load_base
 from mlfwk.visualization import generate_space, coloring
 
-
 if __name__ == '__main__':
-    print("run coluna 2 classes")
+    print("run breast cancer")
     final_result = {
         'ACCURACY': [],
         'std ACCURACY': [],
@@ -34,7 +33,7 @@ if __name__ == '__main__':
         'std precision': [],
         'recall': [],
         'std recall': [],
-        'best_cf': [],
+        'best_cf': []
     }
 
     results = {
@@ -43,49 +42,50 @@ if __name__ == '__main__':
         'f1_score': [],
         'precision': [],
         'recall': [],
-        'cf': [],
+        'cf': []
     }
 
     # carregar a base
-    base = load_base(path='column_2C_weka.arff', type='arff')
-
+    base = load_base(path='breast-cancer-wisconsin.data', type='csv')
+    base = base.drop(['Sample code number'], axis=1)
 
     # features
-    features = ['pelvic_incidence', 'pelvic_tilt', 'lumbar_lordosis_angle', 'sacral_slope', 'pelvic_radius', 'degree_spondylolisthesis']
-    classes = base['class'].unique()
+    features = ['Clump Thickness', 'Uniformity of Cell Size', 'Uniformity of Cell Shape', 'Marginal Adhesion',
+       'Single Epithelial Cell Size', 'Bare Nuclei', 'Bland Chromatin', 'Normal Nucleoli', 'Mitoses']
+    classes = base['Class'].unique()
 
     print(base.info())
 
     # ----------------------------- Clean the data ----------------------------------------------------------------
 
+    # The values at the column Bare Nuclei are all strings so we have to transform to int each of them.
+    for unique_value in base['Bare Nuclei']:
+        if unique_value != '?':
+            base['Bare Nuclei'][base['Bare Nuclei'] == unique_value] = int(unique_value)
+
+    # ? -> mean of column
+    base['Bare Nuclei'][base['Bare Nuclei'] == '?'] = int(np.mean(base['Bare Nuclei'][base['Bare Nuclei'] != '?']))
+
     # -------------------------- Normalization ------------------------------------------------------------------
 
     # normalizar a base
-    base[features] = normalization(base[features], type='min-max')
+    base[features] = (normalization(base[features], type='min-max')).to_numpy(dtype=np.float)
 
 
     # ------------------------------------------------------------------------------------------------------------
-
     for realization in range(20):
         train, test = split_random(base, train_percentage=.8)
 
         bayes_gaussian_clf = gaussianBayes(classes)
-        bayes_gaussian_clf.fit(train, features, 'class')
+        bayes_gaussian_clf.fit(train, features, 'Class')
         y_out = bayes_gaussian_clf.predict(test, features)
 
-
-        # decoding the types of outputs for calculate de the metrics
-        y_test = list(test['class'])
-        for i in range(len(y_out)):
-            y_out[i] = y_out[i].decode()
-            y_test[i] = y_test[i].decode()
-
-        metrics_calculator = metric(y_test, y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
+        metrics_calculator = metric(list(test['Class']), y_out, types=['ACCURACY', 'precision', 'recall', 'f1_score'])
         metric_results = metrics_calculator.calculate(average='macro')
         print(metric_results)
 
-        results['cf'].append(
-            (metric_results['ACCURACY'], metrics_calculator.confusion_matrix(y_test, y_out, labels=['Abnormal', 'Normal'])))
+        results['cf'].append((metric_results['ACCURACY'],
+                              metrics_calculator.confusion_matrix(list(test['Class']), y_out, labels=classes)))
 
         results['realization'].append(realization)
         for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
@@ -98,18 +98,19 @@ if __name__ == '__main__':
         final_result['std ' + type].append(std(results[type]))
 
 
-    # ------------------------ PLOT -------------------------------------------------
 
+    # ------------------------ PLOT -------------------------------------------------
+    #
     for i in range(len(final_result['best_cf'])):
         plt.figure(figsize=(10, 7))
 
-        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in ['Abnormal', 'Normal']],
-                             columns=[i for i in ['Abnormal', 'Normal']])
+        df_cm = DataFrame(final_result['best_cf'][i], index=[i for i in classes],
+                             columns=[i for i in classes])
         sn.heatmap(df_cm, annot=True)
 
-        path = get_project_root() + '/run/ML-01/COLUNA_2C/results/'
-        plt.savefig(path + "mat_confsuison_triangle.jpg")
+        path = get_project_root() + '/run/ML-01/CANCER/results/'
+        plt.savefig(path + "mat_confsuison.jpg")
         plt.show()
 
     print(pd.DataFrame(final_result))
-    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/ML-01/COLUNA_2C/results/' + 'result_bayes_gaussian.csv')
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/ML-01/CANCER/results/' + 'result_bayes_gaussian.csv')

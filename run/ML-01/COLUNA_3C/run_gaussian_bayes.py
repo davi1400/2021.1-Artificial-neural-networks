@@ -24,7 +24,7 @@ from mlfwk.visualization import generate_space, coloring
 
 
 if __name__ == '__main__':
-    print("run coluna 2 classes")
+    print("run coluna 3 classes")
     final_result = {
         'ACCURACY': [],
         'std ACCURACY': [],
@@ -34,7 +34,7 @@ if __name__ == '__main__':
         'std precision': [],
         'recall': [],
         'std recall': [],
-        'best_cf': [],
+        'best_cf': []
     }
 
     results = {
@@ -43,12 +43,11 @@ if __name__ == '__main__':
         'f1_score': [],
         'precision': [],
         'recall': [],
-        'cf': [],
+        'cf': []
     }
 
     # carregar a base
-    base = load_base(path='column_2C_weka.arff', type='arff')
-
+    base = load_base(path='column_3C_weka.arff', type='arff')
 
     # features
     features = ['pelvic_incidence', 'pelvic_tilt', 'lumbar_lordosis_angle', 'sacral_slope', 'pelvic_radius', 'degree_spondylolisthesis']
@@ -66,13 +65,13 @@ if __name__ == '__main__':
 
     # ------------------------------------------------------------------------------------------------------------
 
+
     for realization in range(20):
         train, test = split_random(base, train_percentage=.8)
 
         bayes_gaussian_clf = gaussianBayes(classes)
         bayes_gaussian_clf.fit(train, features, 'class')
         y_out = bayes_gaussian_clf.predict(test, features)
-
 
         # decoding the types of outputs for calculate de the metrics
         y_test = list(test['class'])
@@ -84,8 +83,9 @@ if __name__ == '__main__':
         metric_results = metrics_calculator.calculate(average='macro')
         print(metric_results)
 
-        results['cf'].append(
-            (metric_results['ACCURACY'], metrics_calculator.confusion_matrix(y_test, y_out, labels=['Abnormal', 'Normal'])))
+        results['cf'].append((metric_results['ACCURACY'],
+                              metrics_calculator.confusion_matrix(y_test, y_out, labels=['Abnormal', 'Normal'])))
+
 
         results['realization'].append(realization)
         for type in ['ACCURACY', 'precision', 'recall', 'f1_score']:
@@ -107,9 +107,10 @@ if __name__ == '__main__':
                              columns=[i for i in ['Abnormal', 'Normal']])
         sn.heatmap(df_cm, annot=True)
 
-        path = get_project_root() + '/run/ML-01/COLUNA_2C/results/'
-        plt.savefig(path + "mat_confsuison_triangle.jpg")
+        path = get_project_root() + '/run/ML-01/COLUNA_3C/results/'
+        plt.savefig(path + "mat_confsuison.jpg")
         plt.show()
 
     print(pd.DataFrame(final_result))
-    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/ML-01/COLUNA_2C/results/' + 'result_bayes_gaussian.csv')
+    del final_result['best_cf']
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/ML-01/COLUNA_3C/results/' + 'result_bayes_gaussain.csv')

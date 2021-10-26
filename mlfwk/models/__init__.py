@@ -11,3 +11,5 @@ from .MULTILAYER_PERCEPTRON_NET.mlp import MultiLayerPerceptron
 from .RADIUS_BASES_FUNCTION_NET.RBF import RadialBasisFunction
 from .EXTREME_LEARNING_MACHINE.ELM import ExtremeLearningMachines
 from .BAYESIAN.gaussian_bayes import gaussianBayes
+from .LINEAR_DISCRIMINANT.linear_discriminant import linearDiscriminant
+from .QUADRATIC_DISCRIMINANT.quadratic_discriminant import quadraticDiscriminant

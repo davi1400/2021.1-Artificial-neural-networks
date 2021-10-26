@@ -18,7 +18,7 @@ from numpy import where, append, ones, array, zeros, mean, argmax, linspace, con
 from mlfwk.metrics import metric
 from mlfwk.readWrite import load_mock
 from mlfwk.utils import split_random, get_project_root, normalization, out_of_c_to_label
-from mlfwk.models import gaussianBayes
+from mlfwk.models import linearDiscriminant
 from mlfwk.readWrite import load_base
 from mlfwk.visualization import generate_space, coloring
 
@@ -69,9 +69,9 @@ if __name__ == '__main__':
     for realization in range(20):
         train, test = split_random(base, train_percentage=.8)
 
-        bayes_gaussian_clf = gaussianBayes(classes)
-        bayes_gaussian_clf.fit(train, features, 'class')
-        y_out = bayes_gaussian_clf.predict(test, features)
+        linear_clf = linearDiscriminant(classes, features, 'class')
+        linear_clf.fit(train)
+        y_out = linear_clf.predict(test)
 
 
         # decoding the types of outputs for calculate de the metrics
@@ -107,9 +107,9 @@ if __name__ == '__main__':
                              columns=[i for i in ['Abnormal', 'Normal']])
         sn.heatmap(df_cm, annot=True)
 
-        path = get_project_root() + '/run/ML-01/COLUNA_2C/results/'
-        plt.savefig(path + "mat_confsuison_triangle.jpg")
+        path = get_project_root() + '/run/ML-02/COLUNA_2C/results/'
+        plt.savefig(path + "mat_confsuison_triangle_LD.jpg")
         plt.show()
 
     print(pd.DataFrame(final_result))
-    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/ML-01/COLUNA_2C/results/' + 'result_bayes_gaussian.csv')
+    pd.DataFrame(final_result).to_csv(get_project_root() + '/run/ML-02/COLUNA_2C/results/' + 'result_LD.csv')
