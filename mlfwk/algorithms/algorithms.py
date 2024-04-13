@@ -1,6 +1,7 @@
 import numpy as np
-from numpy import mean, array
+from numpy import mean, array, pi, sqrt, exp
 from sklearn.metrics.pairwise import euclidean_distances
+from scipy import linalg
 
 
 def calculate_euclidian_distance(X_example, example):
@@ -54,7 +55,7 @@ def get_derivate(y, func):
     @return:
     """
     cases = {
-        'sigmoid logistic': y*(1-y),
+        'sigmoid logistic': y * (1 - y),
         'linear': 1
     }
 
@@ -73,10 +74,10 @@ def learning_rule_multilayer_perceptron(network, output_error, learning_rate, hi
     @param learning_rate
     @return:
     """
-    m = len(list(hidden.values())) # number of hiddden neurons
+    m = len(list(hidden.values()))  # number of hiddden neurons
 
     output_error_array = []
-    hidden_wheigths = np.zeros((m+1, len(network['output'].keys())))
+    hidden_wheigths = np.zeros((m + 1, len(network['output'].keys())))
     output_derivates = []
     i = 0
     for output_neuron in network['output'].keys():
@@ -89,14 +90,15 @@ def learning_rule_multilayer_perceptron(network, output_error, learning_rate, hi
     for output_neuron in network['output'].keys():
         output_derivate = get_derivate(y[output_neuron], func=case)
         output_hidden = array(list(hidden.values()), ndmin=2).reshape(m, 1)
-        adjust = array((learning_rate * (output_derivate * output_error[output_neuron] * np.c_[-1, output_hidden.T])), ndmin=2, dtype=np.float).T
+        adjust = array((learning_rate * (output_derivate * output_error[output_neuron] * np.c_[-1, output_hidden.T])),
+                       ndmin=2, dtype=np.float).T
         network['output'][output_neuron].backward(adjust)
-
 
     hidden_number_neuron = 0
     for hidden_neuron in network['hidden_1'].keys():
         hidden_derivate = get_derivate(hidden[hidden_neuron], func=case)
-        adjust = array((learning_rate * (hidden_derivate * hidden_error[hidden_number_neuron] * x)), ndmin=2, dtype=np.float).T
+        adjust = array((learning_rate * (hidden_derivate * hidden_error[hidden_number_neuron] * x)), ndmin=2,
+                       dtype=np.float).T
         network['hidden_1'][hidden_neuron].backward(adjust)
 
     return network
@@ -115,8 +117,6 @@ def learning_rule_adaline(error, x, learning_rate):
     return array((learning_rate * (error * x)), ndmin=2, dtype=np.float).T
 
 
-
-
 def heaveside(y):
     """
 
@@ -130,3 +130,20 @@ def heaveside(y):
         elif y[i] <= 0:
             y[i] = 0
     return y
+
+
+def gaussianPDF(x, mean, covariance_matrix):
+    """
+
+    @param x: array
+    @param mean: array of means
+    @param covariance_matrix: matrix
+    @return:
+    """
+    M, N = x.shape
+    cov_det = linalg.det(covariance_matrix)
+
+    part_one = 1 / ((2 * pi) ** (M / 2) * sqrt(cov_det))
+    part_two = exp((-1 / 2) * np.dot(np.dot((x - mean).T, linalg.inv(covariance_matrix)), (x - mean))[0][0])
+
+    return part_one * part_two
